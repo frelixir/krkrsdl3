@@ -14,8 +14,7 @@
 
 #include <condition_variable>
 #include <functional>
-
-#include "pthread_impl.h"
+#include <SDL3/SDL_thread.h>
 
 //---------------------------------------------------------------------------
 // tTVPThreadPriority
@@ -36,19 +35,19 @@ enum tTVPThreadPriority {
 //---------------------------------------------------------------------------
 class tTVPThread
 {
-	bool Terminated;
+    bool Terminated;
     bool Suspended;
-	pthread_t Handle;
-	std::mutex _mutex;
-	std::condition_variable _cond;
+    SDL_Thread* Handle;
+    std::mutex _mutex;
+    std::condition_variable _cond;
 
-	static void* StartProc(void* arg);
+    static int StartProc(void* arg);
 
 public:
-	tTVPThread();
-	virtual ~tTVPThread();
+    tTVPThread();
+    virtual ~tTVPThread();
 
-	bool GetTerminated() const { return Terminated; }
+    bool GetTerminated() const { return Terminated; }
     bool IsRunning() { return !Suspended; }
     void Terminate();
     void StopThread();
@@ -56,16 +55,16 @@ public:
     bool IsCurrentThread();
 
 protected:
-	virtual void Execute() = 0;
+    virtual void Execute() = 0;
     virtual void OnExit() {};
 
 public:
-	void WaitFor();
+    void WaitFor();
 
-	tTVPThreadPriority GetPriority();
-	void SetPriority(tTVPThreadPriority pri);
+    tTVPThreadPriority GetPriority();
+    void SetPriority(tTVPThreadPriority pri);
 
-	void Resume();
+    void Resume();
 
 };
 //---------------------------------------------------------------------------

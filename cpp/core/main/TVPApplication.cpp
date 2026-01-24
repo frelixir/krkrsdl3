@@ -142,105 +142,104 @@ bool tTVPApplication::StartApplication(int argc, char* argv[])
 {
     SetCommandlineArguments(argc, argv);
 
-	TVPTerminateCode = 0;
-	_retry = GameSetting::retry;
-	_cancel = GameSetting::cancel;
-	_msg = GameSetting::err_no_memory;
-	_title = GameSetting::err_occured;
-	
-	// make native dir
+    TVPTerminateCode = 0;
+    _retry = GameSetting::retry;
+    _cancel = GameSetting::cancel;
+    _msg = GameSetting::err_no_memory;
+    _title = GameSetting::err_occured;
+
+#ifdef _KRKRSDL3_LIB
+    TVPNativeProjectDir = std::string(argv[1]);
+#else
     size_t lastSlash = std::string(argv[0]).find_last_of("/\\");
-    if (lastSlash == std::string::npos)
-    {
-        TVPNativeProjectDir = std::string(argv[1]);
-    }
-    else
+    if (lastSlash != std::string::npos)
     {
         TVPNativeProjectDir = std::string(argv[0]).substr(0, lastSlash + 1) + "Res";
     }
-
-	CheckConsole();
-
-	// try starting the program!
-	try {
-
-		TVPProjectDir = TVPNormalizeStorageName(argv[1]);
-
-		TVPInitScriptEngine();
-		TVPInitFontNames();
-
-		// banner
-		TVPAddImportantLog( TVPFormatMessage(TVPProgramStartedOn, TVPGetOSName(), TVPGetPlatformName()) );
-
-		// TVPInitializeBaseSystems
-		TVPInitializeBaseSystems();
-
-		Initialize();
-
-		if(TVPCheckPrintDataPath()) return true;
-		if(TVPExecuteUserConfig()) return true;
-		
-		image_load_thread_ = new tTVPAsyncImageLoader();
-
-		TVPLoadPluigins(); // load plugin module *.tpm
-		TVPSystemInit();
-
-		if(TVPCheckAbout()) return true; // version information dialog box;
-
-		SetTitle(TVPKirikiri.operator const tjs_char *());
-		TVPSystemControl = new tTVPSystemControl();
-		// Check digitizer
-		CheckDigitizer();
-
-		// start image load thread
-		image_load_thread_->Resume();
-
-		TVPInitializeStartupScript();
-		_project_startup = true;
-	} catch( const EAbort & ) {
-		// nothing to do
-#if !(defined(_MSC_VER) && defined(_DEBUG))
-	} catch (const Exception &exception) {
-		TVPOnError();
-		if(!TVPSystemUninitCalled)
-			ShowException(exception.what());
-	} catch( const TJS::eTJSScriptError &e ) {
-		TVPOnError();
-		if (!TVPSystemUninitCalled) {
-			ttstr msg;
-			if (!title_.IsEmpty()) {
-				msg += title_;
-				msg += "\n";
-			}
-			msg += e.GetMessage();
-			const tjs_char *pszBlockName = e.GetBlockName();
-			if (pszBlockName && *pszBlockName) {
-				msg += TJS_W("\n@line(");
-				tjs_char tmp[34];
-				msg += TJS_int_to_str(e.GetSourceLine(), tmp);
-				msg += TJS_W(") ");
-				msg += pszBlockName;
-			}
-			msg += TJS_W("\n");
-			msg += e.GetTrace();
-			ShowException(msg);
-		}
-	} catch( const TJS::eTJS &e) {
-		TVPOnError();
-		if(!TVPSystemUninitCalled)
-			ShowException( e.GetMessage() );
-	} catch( const std::exception &e ) {
-		ShowException( e.what() );
-	} catch( const char* e ) {
-		ShowException( e );
-	} catch( const tjs_char* e ) {
-		ShowException( e );
-	} catch(...) {
-		ShowException( (const tjs_char*)TVPUnknownError );
 #endif
-	}
 
-	return true;
+    CheckConsole();
+
+    // try starting the program!
+    try {
+
+            TVPProjectDir = TVPNormalizeStorageName(argv[1]);
+
+            TVPInitScriptEngine();
+            TVPInitFontNames();
+
+            // banner
+            TVPAddImportantLog( TVPFormatMessage(TVPProgramStartedOn, TVPGetOSName(), TVPGetPlatformName()) );
+
+            // TVPInitializeBaseSystems
+            TVPInitializeBaseSystems();
+
+            Initialize();
+
+            if(TVPCheckPrintDataPath()) return true;
+            if(TVPExecuteUserConfig()) return true;
+
+            image_load_thread_ = new tTVPAsyncImageLoader();
+
+            TVPLoadPluigins(); // load plugin module *.tpm
+            TVPSystemInit();
+
+            if(TVPCheckAbout()) return true; // version information dialog box;
+
+            SetTitle(TVPKirikiri.operator const tjs_char *());
+            TVPSystemControl = new tTVPSystemControl();
+            // Check digitizer
+            CheckDigitizer();
+
+            // start image load thread
+            image_load_thread_->Resume();
+
+            TVPInitializeStartupScript();
+            _project_startup = true;
+    } catch( const EAbort & ) {
+            // nothing to do
+#if !(defined(_MSC_VER) && defined(_DEBUG))
+    } catch (const Exception &exception) {
+            TVPOnError();
+            if(!TVPSystemUninitCalled)
+                    ShowException(exception.what());
+    } catch( const TJS::eTJSScriptError &e ) {
+            TVPOnError();
+            if (!TVPSystemUninitCalled) {
+                    ttstr msg;
+                    if (!title_.IsEmpty()) {
+                            msg += title_;
+                            msg += "\n";
+                    }
+                    msg += e.GetMessage();
+                    const tjs_char *pszBlockName = e.GetBlockName();
+                    if (pszBlockName && *pszBlockName) {
+                            msg += TJS_W("\n@line(");
+                            tjs_char tmp[34];
+                            msg += TJS_int_to_str(e.GetSourceLine(), tmp);
+                            msg += TJS_W(") ");
+                            msg += pszBlockName;
+                    }
+                    msg += TJS_W("\n");
+                    msg += e.GetTrace();
+                    ShowException(msg);
+            }
+    } catch( const TJS::eTJS &e) {
+            TVPOnError();
+            if(!TVPSystemUninitCalled)
+                    ShowException( e.GetMessage() );
+    } catch( const std::exception &e ) {
+            ShowException( e.what() );
+    } catch( const char* e ) {
+            ShowException( e );
+    } catch( const tjs_char* e ) {
+            ShowException( e );
+    } catch(...) {
+            ShowException( (const tjs_char*)TVPUnknownError );
+#endif
+    }
+
+    return true;
 }
 /**
  * コンソールからの起動か確認し、コンソールからの起動の場合は、標準出力を割り当てる

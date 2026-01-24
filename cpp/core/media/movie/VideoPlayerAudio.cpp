@@ -1,6 +1,7 @@
 #include "tjsCommHead.h"
 #include "VideoPlayerAudio.h"
 
+#include <thread>
 #include "WaveMixer.h"
 #include "CodecAudioFFmpeg.h"
 

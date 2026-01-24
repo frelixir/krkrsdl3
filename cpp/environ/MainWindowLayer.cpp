@@ -8,7 +8,7 @@
 #include "RenderManager.h"
 #include "WindowIntf.h"
 #include "TVPSystem.h"
-#include "pthread_impl.h"
+#include <thread>
 
 #include "SDL3/SDL.h"
 

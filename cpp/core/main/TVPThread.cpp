@@ -12,6 +12,7 @@
 #include "tjsCommHead.h"
 #include "TVPThread.h"
 
+#include <thread>
 #include <mutex>
 #include "TVPMsg.h"
 #include "TVPDebug.h"
@@ -21,35 +22,32 @@
 //---------------------------------------------------------------------------
 tTVPThread::tTVPThread()
 {
-	Terminated = false;
-	Suspended = true;
+    Terminated = false;
+    Suspended = true;
 
-	pthread_attr_t attr;
-	if (pthread_attr_init(&attr) != 0) {
-		TVPThrowInternalError;
-	}
-	if (pthread_create(&Handle, &attr, StartProc, this) != 0) {
-		pthread_attr_destroy(&attr);
-		TVPThrowInternalError;
-	}
-	pthread_attr_destroy(&attr);
+    Handle = SDL_CreateThread(StartProc, "TVPThread", this);
+    if (!Handle) {
+        delete (SDL_Thread**)Handle;
+        TVPThrowInternalError;
+    }
 }
 //---------------------------------------------------------------------------
 tTVPThread::~tTVPThread()
 {
     if(!Terminated)
         Terminate();
+    delete (SDL_Thread**)Handle;
 }
 //---------------------------------------------------------------------------
 void tTVPThread::Terminate()
 {
-	Terminated = true;
+    Terminated = true;
 }
 void tTVPThread::StopThread()
 {
     Terminated = true;
     _cond.notify_all();
-    pthread_join(Handle, NULL);
+    SDL_WaitThread((SDL_Thread*)Handle, nullptr);
 }
 //---------------------------------------------------------------------------
 void tTVPThread::Sleep(unsigned int milliseconds)
@@ -62,76 +60,48 @@ void tTVPThread::Sleep(unsigned int milliseconds)
     }
 }
 //---------------------------------------------------------------------------
-bool tTVPThread::IsCurrentThread() {
-    return pthread_equal(Handle, pthread_self());
+bool tTVPThread::IsCurrentThread()
+{
+    return (SDL_GetCurrentThreadID() == SDL_GetThreadID((SDL_Thread*)Handle));
 }
 //---------------------------------------------------------------------------
-void* tTVPThread::StartProc(void* arg)
+int tTVPThread::StartProc(void* arg)
 {
-	tTVPThread* _this = ((tTVPThread*)arg);
-	if (_this->Suspended) {
-		std::unique_lock<std::mutex> lk(_this->_mutex);
-		_this->_cond.wait(lk);
-	}
-	_this->Execute();
+    tTVPThread* _this = static_cast<tTVPThread*>(arg);
+
+    // 等待恢复
+    if (_this->Suspended) {
+        std::unique_lock<std::mutex> lk(_this->_mutex);
+        _this->_cond.wait(lk);
+    }
+    _this->Execute();
     _this->OnExit();
     _this->Terminated = false;
-	TVPOnThreadExited();
-#ifndef _WIN32
-	_this->Handle = 0;
-#endif
-	return nullptr;
+    TVPOnThreadExited();
+
+    return 0;
 }
 //---------------------------------------------------------------------------
 void tTVPThread::WaitFor()
 {
-	pthread_join(Handle, NULL);
+    SDL_WaitThread((SDL_Thread*)Handle, nullptr);
 }
 //---------------------------------------------------------------------------
 tTVPThreadPriority tTVPThread::GetPriority()
 {
-	sched_param npri = { 0 };
-	int policy = 0;
-	pthread_getschedparam(Handle, &policy, &npri);
-
-	switch (policy)
-	{
-	case 5/*SCHED_IDLE*/: return ttpIdle;
-	case 3/*SCHED_BATCH*/: return (npri.sched_priority == 0) ? ttpLowest : ttpLower;
-	case 0/*SCHED_NORMAL*/:
-		switch (npri.sched_priority) {
-		case 0: return ttpNormal;
-		case 1: return ttpHigher;
-		case 2: return ttpHighest;
-		}
-		break;
-	case 2/*SCHED_RR*/: return ttpTimeCritical;
-	}
-
-	return ttpNormal;
+    // do nothing
+    return ttpNormal;
 }
 //---------------------------------------------------------------------------
 void tTVPThread::SetPriority(tTVPThreadPriority pri)
 {
-	sched_param npri = { 0 }; //SCHED_NORMAL
-	int policy = 0;
-	switch (pri)
-	{
-	case ttpIdle:			policy = 5/*SCHED_IDLE*/;			break;
-	case ttpLowest:			policy = 3/*SCHED_BATCH*/;	npri.sched_priority = 0;		break;
-	case ttpLower:			policy = 3/*SCHED_BATCH*/;	npri.sched_priority = 1;        break;
-	case ttpNormal:			policy = 0/*SCHED_NORMAL*/;		break;
-	case ttpHigher:			policy = 0/*SCHED_NORMAL*/;	npri.sched_priority = 1;    break;
-	case ttpHighest:		policy = 0/*SCHED_NORMAL*/;	npri.sched_priority = 2;	break;
-	case ttpTimeCritical:	policy = 2/*SCHED_RR*/;	    break;
-	}
-	pthread_setschedparam(Handle, policy, &npri);
+    // do nothing
 }
 //---------------------------------------------------------------------------
 void tTVPThread::Resume()
 {
-	Suspended = false;
-	_cond.notify_one();
+    Suspended = false;
+    _cond.notify_one();
 }
 //---------------------------------------------------------------------------
 
@@ -146,24 +116,24 @@ void tTVPThread::Resume()
 //---------------------------------------------------------------------------
 void tTVPThreadEvent::Set()
 {
-	std::unique_lock<std::mutex> lk(Mutex);
-	Handle.notify_one();
+    std::unique_lock<std::mutex> lk(Mutex);
+    Handle.notify_one();
 }
 //---------------------------------------------------------------------------
 bool tTVPThreadEvent::WaitFor(tjs_uint timeout)
 {
-	// wait for event;
-	// returns true if the event is set, otherwise (when timed out) returns false.
+    // wait for event;
+    // returns true if the event is set, otherwise (when timed out) returns false.
 
-	std::unique_lock<std::mutex> lk(Mutex);
-	if (timeout != 0) {
+    std::unique_lock<std::mutex> lk(Mutex);
+    if (timeout != 0) {
         return Handle.wait_for(lk, std::chrono::milliseconds(timeout)) !=
-            std::cv_status::timeout;
-	}
-	else {
-		Handle.wait(lk);
+               std::cv_status::timeout;
+    }
+    else {
+        Handle.wait(lk);
         return true;
-	}
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -177,50 +147,51 @@ static tjs_int TVPThreadTaskNum, TVPThreadTaskCount;
 //---------------------------------------------------------------------------
 static tjs_int GetProcesserNum(void)
 {
-	static tjs_int processor_num = 0;
-	if (!processor_num) {
-		processor_num = std::thread::hardware_concurrency();
-		tjs_char tmp[34];
-		TVPAddLog(ttstr(TJS_W("Detected CPU core(s): ")) + TJS_tTVInt_to_str(processor_num, tmp));
-	}
-	return processor_num;
+    static tjs_int processor_num = 0;
+    if (!processor_num) {
+        processor_num = std::thread::hardware_concurrency();
+        tjs_char tmp[34];
+        TVPAddLog(ttstr(TJS_W("Detected CPU core(s): ")) + TJS_tTVInt_to_str(processor_num, tmp));
+    }
+    return processor_num;
 }
 
 tjs_int TVPGetProcessorNum(void)
 {
-	return GetProcesserNum();
+        return GetProcesserNum();
 }
 
 //---------------------------------------------------------------------------
 tjs_int TVPGetThreadNum(void)
 {
-	tjs_int threadNum = TVPDrawThreadNum ? TVPDrawThreadNum : GetProcesserNum();
-	threadNum = std::min(threadNum, TVPMaxThreadNum);
-	return threadNum;
+    tjs_int threadNum = TVPDrawThreadNum ? TVPDrawThreadNum : GetProcesserNum();
+    threadNum = std::min(threadNum, TVPMaxThreadNum);
+    return threadNum;
 }
 
 //---------------------------------------------------------------------------
 void TVPExecThreadTask(int numThreads, TVP_THREAD_TASK_FUNC func)
 {
-	if (numThreads == 1) {
-		func(0);
-		return;
-	}
-	for (int i = 0; i < numThreads; ++i)
-		func(i);
+    if (numThreads == 1) {
+        func(0);
+        return;
+    }
+    for (int i = 0; i < numThreads; ++i)
+        func(i);
 }
 //---------------------------------------------------------------------------
 
 // xp3filter cleaner
 std::vector<std::function<void()>> _OnThreadExitedEvents;
 
-void TVPOnThreadExited() {
-	for (const auto& ev : _OnThreadExitedEvents) {
-		ev();
-	}
+void TVPOnThreadExited()
+{
+    for (const auto& ev : _OnThreadExitedEvents) {
+        ev();
+    }
 }
 
 void TVPAddOnThreadExitEvent(const std::function<void()>& ev)
 {
-	_OnThreadExitedEvents.emplace_back(ev);
+    _OnThreadExitedEvents.emplace_back(ev);
 }

@@ -45,9 +45,9 @@
 
 # 外部环境依赖
 
-- cmake:跨平台构建工具
+- cmake/ninja:跨平台构建工具
 - vcpkg:包管理工具
-- Visual Studio 2022:windows构建工具链
+- LLVM-MinGW:windows构建工具链
 - Android SDK/Android NDK:安卓构建工具链
 
 # 补充说明

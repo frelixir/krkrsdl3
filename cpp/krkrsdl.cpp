@@ -13,7 +13,7 @@
 #include "eventCallbackFun.h"
 
 #ifndef _DEBUG
-#ifdef _MSC_VER
+#ifdef _KRKRSDL3_WINDOWS
 #include <windows.h>
 #endif
 #endif
@@ -75,7 +75,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     // 隐藏命令行
 #ifndef _DEBUG
-#ifdef _MSC_VER
+#ifdef _KRKRSDL3_WINDOWS
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 #endif

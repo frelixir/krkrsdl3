@@ -1788,8 +1788,8 @@ static tTVPCharacterData* TVPGetCharacter(const tTVPFontAndCharacterData& font,
 	tTVPCharacterDataHolder* ptr = TVPFontCache.FindAndTouchWithHash(font, hash);
 	if (ptr)
 	{
-		// found in the cache
-		return ptr->GetObject();
+            // found in the cache
+            return ptr->GetObject();
 	}
 
 	// not found in the cache

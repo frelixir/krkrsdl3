@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 3.28)
 # 1. 准备阶段
 #
 
+# 不支持MSVC
+if(MSVC)
+    message(FATAL_ERROR "不支持MSVC，Windows请使用llvm-mingw体系编译！")
+endif()
+
 # 使用vcpkg进行包管理
 if(ANDROID)
     if (ANDROID_ABI MATCHES "arm64-v8a")
@@ -11,19 +16,18 @@ if(ANDROID)
     elseif(ANDROID_ABI MATCHES "x86_64")
         set(VCPKG_TARGET_TRIPLET "x64-android" CACHE STRING "" FORCE)
     else()
-        message(FATAL_ERROR "
-        Please specify ANDROID_ABI
-        For example
-        cmake ... -DANDROID_ABI=arm64-v8a
-
-        Possible ABIs are: arm64-v8a, x64-android
-        ")
+        message(FATAL_ERROR "安卓当前仅支持arm64-v8a和x86_64架构")
     endif()
     set(CMAKE_ANDROID_NDK $ENV{ANDROID_NDK_HOME})
     set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE $ENV{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake)
     set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+elseif(LINUX)
+    # 直接使用系统包管理器，不然容易出现问题
+elseif(WINDOWS)
+    set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic")
+    set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 endif()
-set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+
 
 # 建立项目
 project(krkrsdl3 VERSION "0.0.5" LANGUAGES C CXX)
@@ -33,12 +37,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# MSVC编译器设置
-if(MSVC)
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_definitions(_UNICODE UNICODE)
-    add_definitions(-D_WIN32_WINNT=0x0A00)
+if(ANDROID)
+    add_definitions(
+        -D_KRKRSDL3_ANDROID=1
+        -D_KRKRSDL3_EGL=1
+        -D_KRKRSDL3_LIB=1
+    )
+elseif(LINUX)
+    add_definitions(
+        -D_KRKRSDL3_LINUX=1
+        -D_KRKRSDL3_GL=1
+        -D_KRKRSDL3_CMD=1
+    )
+elseif(WINDOWS)
+    add_definitions(
+        -DPROTOBUF_USE_DLLS=1
+        -D_KRKRSDL3_WINDOWS=1
+        -D_KRKRSDL3_GL=1
+        -D_KRKRSDL3_CMD=1
+    )
+else()
+    message(FATAL_ERROR "unsupported: ${CMAKE_SYSTEM_NAME}")
 endif()
 
 #
@@ -139,7 +158,7 @@ find_package(oniguruma CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE oniguruma::onig)
 
 set(OpenCV_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/opencv4")
-find_package(OpenCV REQUIRED)
+find_package(OpenCV CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     opencv_imgproc
     opencv_core

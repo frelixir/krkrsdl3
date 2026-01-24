@@ -670,7 +670,8 @@ void tTJSBinaryStream::SetPosition(tjs_uint64 pos)
 //---------------------------------------------------------------------------
 void tTJSBinaryStream::ReadBuffer(void *buffer, tjs_uint read_size)
 {
-	if(Read(buffer, read_size) != read_size)
+    int a = Read(buffer, read_size);
+        if(a != read_size)
 		TJS_eTJSError(TJSReadError);
 }
 //---------------------------------------------------------------------------

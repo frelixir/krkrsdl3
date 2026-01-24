@@ -1,8 +1,7 @@
 #pragma once
-#if defined(_WIN32) || defined(_WIN64)
-#else
+
+#include <functional>
 #include <sys/stat.h>
-#endif
 
 #include "UtilStreams.h"
 
@@ -23,7 +22,7 @@ class tTVPLocalFileStream : public tTJSBinaryStream
 {
 private:
 	//HANDLE Handle;
-	int Handle;
+        void* Handle;
 	tTVPMemoryStream* MemBuffer = nullptr;
 	ttstr FileName;
 
@@ -42,7 +41,7 @@ public:
 	tjs_uint64 TJS_INTF_METHOD GetSize();
 	const std::string& TJS_INTF_METHOD GetFileName() { return FileName.AsStdString(); }
 
-	int GetHandle() const { return Handle; }
+        void* GetHandle() const { return Handle; }
 };
 //---------------------------------------------------------------------------
 

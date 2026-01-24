@@ -3020,7 +3020,7 @@ NCB_SET_CONVERTOR(const type*, convertor<const type>)
 
 template <class T>
 struct MatrixConvertor : public GdipTypeConvertor<T> {
-	void operator ()(MatrixConvertor::GdipClassP& dst, const tTJSVariant& src) {
+        void operator ()(T*& dst, const tTJSVariant& src) {
         typename MatrixConvertor::WrapperT* obj;
 		if (src.Type() == tvtObject) {
 			if ((obj = MatrixConvertor::AdaptorT::GetNativeInstance(src.AsObjectNoAddRef()))) {
@@ -3156,7 +3156,7 @@ NCB_GDIP_METHOD(Translate);
  */
 template <class T>
 struct ImageConvertor : public GdipTypeConvertor<T> {
-	void operator ()(ImageConvertor::GdipClassP& dst, const tTJSVariant& src) {
+        void operator ()(T*& dst, const tTJSVariant& src) {
 		if (src.Type() == tvtObject) {
             typename ImageConvertor::WrapperT* obj;
 			if ((obj = ImageConvertor::AdaptorT::GetNativeInstance(src.AsObjectNoAddRef()))) {

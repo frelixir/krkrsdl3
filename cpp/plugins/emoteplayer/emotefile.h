@@ -5,7 +5,7 @@
 #include <string>
 #include <random>
 
-#if _MSC_VER
+#if _KRKRSDL3_GL
 #include <glad/glad.h>
 #else
 #include <GLES3/gl32.h>

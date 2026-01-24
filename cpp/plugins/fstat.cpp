@@ -8,7 +8,7 @@
 
 #define NCB_MODULE_NAME TJS_W("fstat.dll")
 
-#ifndef _WIN32
+#ifndef _KRKRSDL3_WINDOWS
 #define FILE_ATTRIBUTE_READONLY 0x0001
 #define FILE_ATTRIBUTE_HIDDEN 0x0002
 #define FILE_ATTRIBUTE_SYSTEM 0x0004
@@ -45,7 +45,7 @@ static std::string _searchPath(const std::string& filename, const std::string& s
 
     if (!searchpath.empty())
     {
-#ifdef _WIN32
+#ifdef _KRKRSDL3_WINDOWS
         char delimiter = ';';
 #else
         char delimiter = ':';
@@ -63,7 +63,7 @@ static std::string _searchPath(const std::string& filename, const std::string& s
         const char* env_path = std::getenv("PATH");
         if (env_path)
         {
-#ifdef _WIN32
+#ifdef _KRKRSDL3_WINDOWS
             char delimiter = ';';
 #else
             char delimiter = ':';

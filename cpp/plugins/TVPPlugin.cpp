@@ -37,9 +37,6 @@
 
 #include "TVPApplication.h"
 #include <set>
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
 
 //---------------------------------------------------------------------------
 bool TVPLoadInternalPlugin(const ttstr &_name);

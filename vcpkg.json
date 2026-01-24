@@ -4,7 +4,6 @@
         "zlib",
         "libarchive",
         "ffmpeg",
-        "opencv4",
         "libpng",
         "libwebp",
         "libjpeg-turbo",
@@ -27,12 +26,16 @@
         },
         "glm",
         "bgfx",
-        "blend2d"
-    ],
-    "overrides": [
+        "blend2d",
+
         {
             "name": "opencv4",
-            "version": "4.8.0"
+            "features": [
+                "highgui"
+            ],
+            "default-features": false
         }
+    ],
+    "overrides": [
     ]
 }

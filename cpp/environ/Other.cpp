@@ -1,9 +1,12 @@
 #include <string>
 
+#include "Platform.h"
 #include "tjsCommHead.h"
 #include "WindowIntf.h"
 #include "TVPWindow.h"
 #include "TVPStorage.h"
+#include "TVPMsg.h"
+#include "Random.h"
 #include "TVPApplication.h"
 
 #include <SDL3/SDL.h>
@@ -11,6 +14,178 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "tjsNativeMenuItem.h"
+
+//---------------------------------------------------------------------------
+// TVPLocalExtrectFilePath
+//---------------------------------------------------------------------------
+ttstr TVPLocalExtractFilePath(const ttstr& name)
+{
+    // this extracts given name's path under local filename rule
+    const tjs_char* p = name.c_str();
+    tjs_int i = name.GetLen() - 1;
+    for (; i >= 0; i--)
+    {
+        if (p[i] == TJS_W(':') || p[i] == TJS_W('/') ||
+            p[i] == TJS_W('\\'))
+            break;
+    }
+    return ttstr(p, i + 1);
+}
+bool TVPWriteDataToFile(const ttstr& filepath, const void* data, unsigned int len) {
+    FILE *handle = fopen(filepath.AsStdString().c_str(), "wb");
+    if(handle) {
+        bool ret = fwrite(data, 1, len, handle) == len;
+        fclose(handle);
+        return ret;
+    }
+    return false;
+}
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// tTVPLocalFileStream
+//---------------------------------------------------------------------------
+tTVPLocalFileStream::tTVPLocalFileStream(const ttstr& origname,
+                                         const ttstr& localname, tjs_uint32 flag)
+  : MemBuffer(nullptr), FileName(localname), Handle(nullptr)
+{
+    tjs_uint32 access = flag & TJS_BS_ACCESS_MASK;
+    if (access == TJS_BS_WRITE) {
+        if (TVPCheckExistentLocalFile(localname))
+        {
+        } else {
+            ttstr dirpath = TVPLocalExtractFilePath(localname);
+            const tjs_char* p = dirpath.c_str();
+            tjs_int i = dirpath.GetLen();
+            if (p[i - 1] == TJS_W('/') || p[i - 1] == TJS_W('\\')) i--;
+            dirpath = dirpath.SubString(0, i);
+            if (!TVPCheckExistentLocalFolder(dirpath) && !TVPCreateFolders(dirpath)) {
+                TVPThrowExceptionMessage(TVPCannotOpenStorage, origname);
+            }
+        }
+        MemBuffer = new tTVPMemoryStream();
+        return;
+    }
+
+    const char* mode = nullptr;
+    switch (access) {
+        case TJS_BS_READ:
+            mode = "rb";
+            break;
+        case TJS_BS_WRITE:
+            mode = "wb+";
+            break;
+        case TJS_BS_APPEND:
+            mode = "ab+";
+            break;
+        case TJS_BS_UPDATE:
+            mode = "rb+";
+            break;
+    }
+
+    tTJSNarrowStringHolder holder(localname.c_str());
+    Handle = SDL_IOFromFile(holder, mode);
+
+    if (!Handle) {
+        if (access == TJS_BS_APPEND || access == TJS_BS_UPDATE) {
+            Handle = SDL_IOFromFile(holder, "rb");
+            if (Handle) {
+                Sint64 size = SDL_GetIOSize((SDL_IOStream*)Handle);
+                if (size > 0 && size < 4 * 1024 * 1024) {
+                    MemBuffer = new tTVPMemoryStream();
+                    MemBuffer->SetSize(static_cast<tjs_uint64>(size));
+                    SDL_ReadIO((SDL_IOStream*)Handle, MemBuffer->GetInternalBuffer(), size);
+                }
+                SDL_CloseIO((SDL_IOStream*)Handle);
+            }
+            if (!MemBuffer)
+                TVPThrowExceptionMessage(TVPCannotOpenStorage, origname);
+        }
+    }
+
+           // push current tick as an environment noise
+    uint32_t tick = TVPGetRoughTickCount32();
+    TVPPushEnvironNoise(&tick, sizeof(tick));
+}
+//---------------------------------------------------------------------------
+tTVPLocalFileStream::~tTVPLocalFileStream()
+{
+    if (MemBuffer) {
+        if (!TVPWriteDataToFile(FileName, MemBuffer->GetInternalBuffer(), MemBuffer->GetSize())) {
+            delete MemBuffer;
+            ttstr filename(FileName);
+            FileName.~tTJSString();
+            free(this);
+            TVPThrowExceptionMessage(TJS_W("File Writing Error: %1"), filename);
+        }
+        delete MemBuffer;
+    }
+    if (Handle) {
+        SDL_CloseIO((SDL_IOStream*)Handle);
+    }
+
+           // push current tick as an environment noise
+           // (timing information from file accesses may be good noises)
+    uint32_t tick = TVPGetRoughTickCount32();
+    TVPPushEnvironNoise(&tick, sizeof(tick));
+}
+//---------------------------------------------------------------------------
+tjs_uint64 TJS_INTF_METHOD tTVPLocalFileStream::Seek(tjs_int64 offset, tjs_int whence)
+{
+    if (MemBuffer) {
+        return MemBuffer->Seek(offset, whence);
+    }
+    SDL_IOWhence sdl_whence;
+    switch (whence) {
+        case SEEK_SET:
+            sdl_whence = SDL_IO_SEEK_SET;
+            break;
+        case SEEK_CUR:
+            sdl_whence = SDL_IO_SEEK_CUR;
+            break;
+        case SEEK_END:
+            sdl_whence = SDL_IO_SEEK_END;
+            break;
+        default:
+            sdl_whence = SDL_IO_SEEK_SET;
+            break;
+    }
+    return static_cast<tjs_uint64>(SDL_SeekIO((SDL_IOStream*)Handle, offset, sdl_whence));
+}
+//---------------------------------------------------------------------------
+tjs_uint TJS_INTF_METHOD tTVPLocalFileStream::Read(void* buffer, tjs_uint read_size)
+{
+    if (MemBuffer) {
+        return MemBuffer->Read(buffer, read_size);
+    }
+    return static_cast<tjs_uint>(SDL_ReadIO((SDL_IOStream*)Handle, buffer, read_size));
+}
+//---------------------------------------------------------------------------
+tjs_uint TJS_INTF_METHOD tTVPLocalFileStream::Write(const void* buffer, tjs_uint write_size)
+{
+    if (MemBuffer) {
+        return MemBuffer->Write(buffer, write_size);
+    }
+    return static_cast<tjs_uint>(SDL_WriteIO((SDL_IOStream*)Handle, buffer, write_size));
+}
+//---------------------------------------------------------------------------
+void TJS_INTF_METHOD tTVPLocalFileStream::SetEndOfStorage()
+{
+    if (MemBuffer) {
+        return MemBuffer->SetEndOfStorage();
+    }
+
+    SDL_SeekIO((SDL_IOStream*)Handle, 0, SDL_IO_SEEK_END);
+}
+//---------------------------------------------------------------------------
+tjs_uint64 TJS_INTF_METHOD tTVPLocalFileStream::GetSize()
+{
+    if (MemBuffer) {
+        return MemBuffer->GetSize();
+    }
+    return static_cast<tjs_uint64>(SDL_GetIOSize((SDL_IOStream*)Handle));
+}
+//---------------------------------------------------------------------------
 
 std::string TVPShowFileSelector(
     const std::string& title,
@@ -511,6 +686,65 @@ int TVPShowSimpleInputBox(ttstr& text,
         return 1;
 }
 
+int TVPShowSimpleMessageBox(const ttstr& text, const ttstr& caption, const std::vector<ttstr>& vecButtons)
+{
+    std::vector<std::string> sdlButtonTexts;
+    std::vector<SDL_MessageBoxButtonData> sdlButtons;
+    sdlButtons.resize(vecButtons.size());
+    for (const auto& btn : vecButtons) {
+        sdlButtonTexts.push_back(btn.AsStdString());
+    }
+    for (size_t i = 0; i < vecButtons.size(); ++i) {
+        SDL_MessageBoxButtonData btn = {0};
+        btn.buttonID = static_cast<int>(i);
+
+        if (i == 0) {
+            btn.flags |= SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT;
+        }
+        if (i == vecButtons.size() - 1) {
+            btn.flags |= SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
+        }
+
+        btn.text = sdlButtonTexts.at(i).c_str();
+        sdlButtons.at(i) = btn;
+    }
+
+    SDL_MessageBoxData msgboxData = {
+            SDL_MESSAGEBOX_INFORMATION,
+            nullptr,
+            caption.AsStdString().c_str(),
+            text.AsStdString().c_str(),
+            static_cast<int>(vecButtons.size()),
+            vecButtons.empty() ? nullptr : sdlButtons.data(),
+            nullptr
+    };
+
+    if (vecButtons.empty()) {
+        SDL_MessageBoxButtonData defaultButton = {
+                SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                0,
+                "确定"
+        };
+        msgboxData.buttons = &defaultButton;
+        msgboxData.numbuttons = 1;
+    }
+
+    int buttonid = -1;
+    if (SDL_ShowMessageBox(&msgboxData, &buttonid) < 0) {
+        SDL_Log("SDL_ShowMessageBox failed: %s",  SDL_GetError());
+        return -1;
+    }
+    return buttonid;
+}
+
+int TVPShowSimpleMessageBox(const char* pszText, const char* pszTitle, unsigned int nButton, const char** btnText) {
+	std::vector<ttstr> vecButtons;
+    for (unsigned int i = 0; i < nButton; ++i) {
+        vecButtons.emplace_back(btnText[i]);
+    }
+    return TVPShowSimpleMessageBox(pszText, pszTitle, vecButtons);
+}
+
 ttstr TVPGetPlatformName()
 {
     return "Window10";
@@ -532,4 +766,5 @@ void TVPCheckAndSendDumps(const std::string& dumpdir, const std::string& package
 
 void TVPOpenPatchLibUrl() {
     std::string url = "https://zeas2.github.io/Kirikiroid2_patch/patch";
+    SDL_OpenURL(url.c_str());
 }

@@ -461,63 +461,6 @@ std::string TVPGetDefaultFileDir() {
     return std::string(buffer);
 }
 
-int TVPShowSimpleMessageBox(const ttstr& text, const ttstr& caption, const std::vector<ttstr>& vecButtons)
-{
-    std::vector<SDL_MessageBoxButtonData> sdlButtons;
-    sdlButtons.reserve(vecButtons.size());
-
-    for (size_t i = 0; i < vecButtons.size(); ++i) {
-        SDL_MessageBoxButtonData btn = {0};
-        btn.buttonID = static_cast<int>(i);
-
-        if (i == 0) {
-            btn.flags |= SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT;
-        }
-        if (i == vecButtons.size() - 1) {
-            btn.flags |= SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
-        }
-
-        btn.text = vecButtons[i].AsNarrowStdString().c_str();
-        sdlButtons.push_back(btn);
-    }
-
-    SDL_MessageBoxData msgboxData = {
-            SDL_MESSAGEBOX_INFORMATION,
-            nullptr,
-            caption.AsNarrowStdString().c_str(),
-            text.AsNarrowStdString().c_str(),
-            static_cast<int>(vecButtons.size()),
-            vecButtons.empty() ? nullptr : sdlButtons.data(),
-            nullptr
-    };
-
-    if (vecButtons.empty()) {
-        SDL_MessageBoxButtonData defaultButton = {
-                SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                0,
-                "确定"
-        };
-        msgboxData.buttons = &defaultButton;
-        msgboxData.numbuttons = 1;
-    }
-
-    int buttonid = -1;
-    if (SDL_ShowMessageBox(&msgboxData, &buttonid) < 0) {
-        SDL_Log("SDL_ShowMessageBox failed: %s",  SDL_GetError());
-        return -1;
-    }
-    return buttonid;
-}
-
-int TVPShowSimpleMessageBox(const char* pszText, const char* pszTitle, unsigned int nButton, const char** btnText)
-{
-    std::vector<ttstr> vecButtons;
-    for (unsigned int i = 0; i < nButton; ++i) {
-        vecButtons.emplace_back(btnText[i]);
-    }
-    return TVPShowSimpleMessageBox(pszText, pszTitle, vecButtons);
-}
-
 static std::vector<std::string> &split(const std::string &s, char delim,
                                        std::vector<std::string> &elems) {
     std::stringstream ss(s);

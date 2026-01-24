@@ -16,11 +16,6 @@
 
 #pragma once
 
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#endif
-
 #define GLM_ASSERT_VALID(matrix) \
     do \
     { \
@@ -325,7 +320,7 @@ namespace emoteplayer
 
     static GLuint emotenodeprogram = 0;
     static GLuint emotenodeVAO = 0;
-#if _MSC_VER
+#if _KRKRSDL3_GL
     static const char* vertexShaderSrc = R"(
             #version 430 core
             layout (location = 0) in vec2 aPos;
@@ -1143,7 +1138,7 @@ namespace emoteplayer
                 // 读取像素数据
                 _filePtr->readIconTobuffer(data, width * height * 4, width * 4, ic);
                 glBindTexture(GL_TEXTURE_2D, selftexture);
-#if _MSC_VER
+#if _KRKRSDL3_GL
                 if (_filePtr->colorType == 0)
                 {
                     glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, width, height, 0, GL_BGRA,
@@ -1669,7 +1664,7 @@ namespace emoteplayer
         glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
         glUseProgram(emotenodeprogram);
         glViewport(0, 0, lim.width, lim.height);
-#if _MSC_VER
+#if _KRKRSDL3_GL
         if (renderMethod.size() > 64)
 #else
         if (renderMethod.size() > 24)
@@ -1746,7 +1741,7 @@ namespace emoteplayer
             totalOpa *= renderMethod.at(i).opa;
             // transform
             char uniformName[32];
-#if defined(_MSC_VER)
+#if defined(_KRKRSDL3_GL)
             sprintf_s(uniformName, 32, "transforms[%d]", idxCnt);
 #else
             sprintf(uniformName, "transforms[%d]", idxCnt);
@@ -1754,7 +1749,7 @@ namespace emoteplayer
             glUniformMatrix4fv(glGetUniformLocation(emotenodeprogram, uniformName), 1, GL_FALSE,
                                glm::value_ptr(renderMethod.at(i).matTrans));
             // controlPoints
-#if defined(_MSC_VER)
+#if defined(_KRKRSDL3_GL)
             sprintf_s(uniformName, 32, "controlPoints[%d]", idxCnt);
 #else
             sprintf(uniformName, "controlPoints[%d]", idxCnt);

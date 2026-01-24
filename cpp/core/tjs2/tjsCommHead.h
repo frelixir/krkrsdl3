@@ -23,10 +23,5 @@
 #include <string>
 #include <stdexcept>
 
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#endif
-
 #include "tjsConfig.h"
 #include "tjs.h"
