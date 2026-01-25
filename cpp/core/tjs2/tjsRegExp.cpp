@@ -260,36 +260,9 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/_compile)
 
 	if(numparams != 1) return TJS_E_BADPARAMCOUNT;
 
-	ttstr readexpr = *param[0];
-    ttstr realexpr;
-	while (true)
-	{
-        tjs_int checkToken = readexpr.IndexOf(TJS_W('\\'));
-        if (checkToken != -1 && readexpr.length() > checkToken &&
-            ttstr(readexpr[checkToken + 1]) == TJS_W("x"))
-        {
-            realexpr += readexpr.SubString(0, checkToken + 4);
-            ttstr remainStr = readexpr.SubString(checkToken + 4, readexpr.length());
-            if (remainStr.length() > 1)
-            {
-                realexpr += TJS_W("\\x") + remainStr.SubString(0, 2);
-                readexpr = remainStr.SubString(2, remainStr.length());
-            }
-            else
-            {
-                realexpr += TJS_W("\\x00");
-                readexpr = remainStr;
-            }
-        }
-        else
-            break;
-	}
-    if (realexpr.IsEmpty())
-        realexpr = readexpr;
-    else
-        realexpr += readexpr;
-
-	const tjs_char* p = realexpr.c_str();
+        ttstr expr = *param[0];
+        expr.Replace(TJS_W("\\x0100-\\xFFFF"), "\\w");
+        const tjs_char* p = expr.c_str();
 	if(!p || !p[0]) return TJS_E_FAIL;
 
 	if(p[0] != TJS_W('/') || p[1] != TJS_W('/')) return TJS_E_FAIL;
@@ -308,8 +281,8 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/_compile)
 			_this->RegEx = NULL;
 		}
 		OnigErrorInfo einfo;
-                int r = onig_new(&(_this->RegEx), (UChar*)exprstart,
-                                 (UChar*)(realexpr.c_str() + realexpr.length()),
+                int r = onig_new(&(_this->RegEx), (UChar *)exprstart,
+                                 (UChar *)(expr.c_str() + expr.length()),
 			flags&((ONIG_OPTION_MAXBIT<<1)-1), ONIG_ENCODING_UTF16_LE, ONIG_SYNTAX_PERL, &einfo );
 		if( r ) {
 			char s[ONIG_MAX_ERROR_MESSAGE_LEN];

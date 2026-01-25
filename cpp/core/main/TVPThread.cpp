@@ -27,7 +27,6 @@ tTVPThread::tTVPThread()
 
     Handle = SDL_CreateThread(StartProc, "TVPThread", this);
     if (!Handle) {
-        delete (SDL_Thread**)Handle;
         TVPThrowInternalError;
     }
 }
@@ -36,7 +35,6 @@ tTVPThread::~tTVPThread()
 {
     if(!Terminated)
         Terminate();
-    delete (SDL_Thread**)Handle;
 }
 //---------------------------------------------------------------------------
 void tTVPThread::Terminate()

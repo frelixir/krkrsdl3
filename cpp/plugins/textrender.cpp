@@ -95,10 +95,11 @@ struct TextRenderState {
   bool       shadow      = true;          
   RgbColor   shadowColor = 0x000000;      
   bool       edge        = false;         
-  RgbColor   edgeColor   = 0x0080ff;      
-  int        lineSpacing = 6;             
-  int        pitch       = 0;             
-  int        lineSize    = 0;     
+  RgbColor   edgeColor   = 0x0080ff;
+  int        lineSpacing = 6;
+  int        pitch       = 0;
+  int        lineSize    = 0;
+  int        valign      = 0;
 
   bool       renderOver  = false;
   int        renderDelay = 1000;
@@ -124,6 +125,7 @@ struct TextRenderState {
     setprop(dict, lineSpacing);
     setprop(dict, pitch);
     setprop(dict, lineSize);
+    setprop(dict, valign);
 
     auto res = tTJSVariant(dict, dict);
     dict->Release();
@@ -152,6 +154,7 @@ struct TextRenderState {
     getprop(dict, lineSpacing);
     getprop(dict, pitch);
     getprop(dict, lineSize);
+    getprop(dict, valign);
   }
 
   static TextRenderState from(tTJSVariant t) {
@@ -352,7 +355,8 @@ public:
   property_accessor(defaultEdge, bool, m_default.edge);
   property_accessor(defaultLineSpacing, int, m_default.lineSpacing);
   property_accessor(defaultPitch, int, m_default.pitch);
-  property_accessor(defaultLineSize, int, m_default.lineSize); 
+  property_accessor(defaultLineSize, int, m_default.lineSize);
+  property_accessor(defaultValign, int, m_default.valign);
 
 private:
   int m_boxWidth  = 0;
@@ -1123,4 +1127,5 @@ NCB_REGISTER_CLASS(TextRenderBase) {
   property_delegate(defaultLineSpacing);
   property_delegate(defaultPitch);
   property_delegate(defaultLineSize);
+  property_delegate(defaultValign);
 };
