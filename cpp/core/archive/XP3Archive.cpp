@@ -832,7 +832,7 @@ tjs_uint TJS_INTF_METHOD tTVPXP3ArchiveStream::Write(const void *buffer,
     return 0;
 }
 //---------------------------------------------------------------------------
-const std::string &TJS_INTF_METHOD tTVPXP3ArchiveStream::GetFileName() {
+const std::string TJS_INTF_METHOD tTVPXP3ArchiveStream::GetFileName() {
     return "";
 }
 //---------------------------------------------------------------------------

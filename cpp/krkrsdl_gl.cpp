@@ -29,12 +29,12 @@ layout (location = 1) in vec2 aTexCoord;
 out vec2 TexCoord;
 
 uniform vec2 windowSize;
-uniform vec2 texturePosition;
-uniform vec2 textureSize;
+uniform vec2 texture_Position;
+uniform vec2 texture_Size;
 
 void main()
 {
-    vec2 pixelPos = texturePosition + vec2(textureSize.x * aPos.x, textureSize.y * aPos.y);
+    vec2 pixelPos = texture_Position + vec2(texture_Size.x * aPos.x, texture_Size.y * aPos.y);
     vec2 ndcPos = pixelPos * 2.0 - 1.0;
 
     gl_Position = vec4(ndcPos, 0.0, 1.0);
@@ -59,12 +59,12 @@ layout (location = 1) in vec2 aTexCoord;
 out vec2 TexCoord;
 
 uniform vec2 windowSize;
-uniform vec2 texturePosition;
-uniform vec2 textureSize;
+uniform vec2 texture_Position;
+uniform vec2 texture_Size;
 
 void main()
 {
-    vec2 pixelPos = texturePosition + vec2(textureSize.x * aPos.x, textureSize.y * aPos.y);
+    vec2 pixelPos = texture_Position + vec2(texture_Size.x * aPos.x, texture_Size.y * aPos.y);
     vec2 ndcPos = pixelPos * 2.0 - 1.0;
 
     gl_Position = vec4(ndcPos, 0.0, 1.0);
@@ -173,7 +173,6 @@ void SDL_GL_DrawTexture(SDL_Sprite* sp, int w, int h)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, (GLuint)sp->texture);
     glUniform1i(glGetUniformLocation(krkrsdl3_program, "texture1"), 0);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glUniform2f(glGetUniformLocation(krkrsdl3_program, "windowSize"), w, h);
     float currScale = std::min(((float)w) / sp->width, ((float)h) / sp->height);
     sp->scale = currScale;
@@ -183,8 +182,9 @@ void SDL_GL_DrawTexture(SDL_Sprite* sp, int w, int h)
     sp->xPos = xPos;
     float yPos = (h - scaledH) / 2.0;
     sp->yPos = yPos;
-    glUniform2f(glGetUniformLocation(krkrsdl3_program, "texturePosition"), xPos / w, yPos / h);
-    glUniform2f(glGetUniformLocation(krkrsdl3_program, "textureSize"), scaledW / w, scaledH / h);
+    glUniform2f(glGetUniformLocation(krkrsdl3_program, "texture_Position"), xPos / w, yPos / h);
+    glUniform2f(glGetUniformLocation(krkrsdl3_program, "texture_Size"), scaledW / w, scaledH / h);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 // 创建opengl素材
@@ -210,11 +210,15 @@ void SDL_GL_JoinTexture(SDL_Sprite* sp)
 }
 
 // 更新素材
-void SDL_GL_UpdateTexture(SDL_Sprite* sp, uint8_t* buff, int width, int height)
+void SDL_GL_UpdateTexture(SDL_Sprite* sp, uint8_t* buff, int width, int height, int pitch)
 {
     glBindTexture(GL_TEXTURE_2D, sp->texture);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / 4);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buff);
     glGenerateMipmap(GL_TEXTURE_2D);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
 // 素材离开渲染

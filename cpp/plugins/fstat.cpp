@@ -925,9 +925,11 @@ public:
      */
     static bool copyFile(const tjs_char* from, const tjs_char* to)
     {
-        ttstr fromFile(TVPGetLocallyAccessibleName(TVPGetPlacedPath(from)));
-        ttstr toFile(TVPGetLocallyAccessibleName(TVPNormalizeStorageName(to)));
-        return _copyFile(fromFile, toFile);
+        try{
+            ttstr fromFile(TVPGetLocallyAccessibleName(TVPGetPlacedPath(from)));
+            ttstr toFile(TVPGetLocallyAccessibleName(TVPNormalizeStorageName(to)));
+            return _copyFile(fromFile, toFile);
+        } catch(...) { return false; }
     }
 
 private:

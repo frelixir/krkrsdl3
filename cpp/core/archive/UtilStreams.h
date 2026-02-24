@@ -102,7 +102,7 @@ public:
     tjs_uint TJS_INTF_METHOD Write(const void *buffer, tjs_uint write_size);
     void TJS_INTF_METHOD SetEndOfStorage();
 
-    const std::string &TJS_INTF_METHOD GetFileName() { return ""; }
+    const std::string TJS_INTF_METHOD GetFileName() { return ""; }
     tjs_uint64 TJS_INTF_METHOD GetSize() { return Size; }
 
     // non-tTJSBinaryStream based methods

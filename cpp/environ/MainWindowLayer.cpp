@@ -11,7 +11,6 @@
 #include <thread>
 
 #include "SDL3/SDL.h"
-#include <opencv2/opencv.hpp>
 
 #include "KeyCodeConv.h"
 #include "../eventCallbackFun.h"
@@ -522,11 +521,7 @@ public:
             tjs_uint8* picData = nullptr;
             tjs_int pic_pitch;
             bool isNeedFree = tex->GetTextureData(&picData, pic_pitch);
-            //cv::Mat rgba(pSprite->height, pSprite->width, CV_8UC4, picData);
-            //cv::Mat bgra;
-            //cv::cvtColor(rgba, bgra, cv::COLOR_RGBA2BGRA);
-            //cv::imshow("main", bgra);
-            krkrsdl3::SDL_GL_UpdateTexture(pSprite, picData, pSprite->width, pSprite->height);
+            krkrsdl3::SDL_GL_UpdateTexture(pSprite, picData, pSprite->width, pSprite->height, pic_pitch);
             if (isNeedFree) free(picData);
         }
     }

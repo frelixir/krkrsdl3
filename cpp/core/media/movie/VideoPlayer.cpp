@@ -106,7 +106,7 @@ void CSelectionStreams::Update(InputStream* input, IDemux* demuxer, const std::s
 {
     if (demuxer)
     {
-        const std::string& filename = input->GetFileName();
+        const std::string filename = input->GetFileName();
 
         for (auto stream : demuxer->GetStreams())
         {

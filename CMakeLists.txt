@@ -163,9 +163,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     opencv_imgproc
     opencv_core
 )
-if(LINUX OR WINDOWS)
-    target_link_libraries(${PROJECT_NAME} PRIVATE opencv_highgui)
-endif()
 
 find_package(Opus CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Opus::opus)

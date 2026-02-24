@@ -179,7 +179,7 @@ public:
     tjs_uint64 TJS_INTF_METHOD Seek(tjs_int64 offset, tjs_int whence);
     tjs_uint TJS_INTF_METHOD Read(void *buffer, tjs_uint read_size);
     tjs_uint TJS_INTF_METHOD Write(const void *buffer, tjs_uint write_size);
-    const std::string &TJS_INTF_METHOD GetFileName();
+    const std::string TJS_INTF_METHOD GetFileName();
     tjs_uint64 TJS_INTF_METHOD GetSize();
 };
 //---------------------------------------------------------------------------

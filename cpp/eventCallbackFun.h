@@ -24,7 +24,7 @@ void SDL_GL_BaseSet(int w, int h);
 void SDL_GL_DrawTexture(SDL_Sprite* sp, int w, int h);
 void SDL_GL_CreateTexture(SDL_Sprite& sp);
 void SDL_GL_JoinTexture(SDL_Sprite* sp);
-void SDL_GL_UpdateTexture(SDL_Sprite* sp, uint8_t* buff, int width, int height);
+void SDL_GL_UpdateTexture(SDL_Sprite* sp, uint8_t* buff, int width, int height, int pitch);
 void SDL_GL_DepartTexture(SDL_Sprite* sp);
 void SDL_GL_DestroyTexture(SDL_Sprite* sp);
 }

@@ -150,7 +150,7 @@ bool CDVDDemuxFFmpeg::Open(InputStream* pInput, bool fileinfo)
     if (!pInput)
         return false;
 
-    const std::string& strFile = pInput->GetFileName();
+    const std::string strFile = pInput->GetFileName();
     m_pInput = pInput;
 
     m_currentPts = DVD_NOPTS_VALUE;

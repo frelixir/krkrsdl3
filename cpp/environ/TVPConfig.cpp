@@ -24,5 +24,5 @@ namespace GameSetting
 	const int software_draw_thread = 0;
 	std::string software_compress_tex = "none";
 
-	ScreenSize currSize = {1920 , 1080};
+	ScreenSize currSize = {1280, 720};
 }

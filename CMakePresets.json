@@ -7,7 +7,7 @@
 	},
 	"configurePresets": [{
 			"name": "Windows Config",
-			"generator": "Ninja",
+			"generator": "Ninja Multi-Config",
 			"cacheVariables": {
 				"WINDOWS": true,
 				"CMAKE_SYSTEM_NAME": "Windows",
@@ -25,7 +25,7 @@
 		},
 		{
 			"name": "Linux Config",
-			"generator": "Ninja",
+			"generator": "Ninja Multi-Config",
 			"cacheVariables": {
 				"LINUX": true,
 				"CMAKE_MAKE_PROGRAM": "ninja",

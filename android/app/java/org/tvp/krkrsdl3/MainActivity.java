@@ -584,7 +584,7 @@ public class MainActivity extends AppCompatActivity {
         button_checkupdate.setOnClickListener(view -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
-            intent.setData(Uri.parse("https://github.com/LiXing48/krkrsdl3"));
+            intent.setData(Uri.parse("https://github.com/luxiaoling-mc/krkrsdl3"));
             startActivity(intent);
         });
         Button button_about = findViewById(R.id.button_about);

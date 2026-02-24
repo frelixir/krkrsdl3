@@ -923,11 +923,11 @@ public:
 	virtual ~FontInfo();
 
 	void setFamilyName(const tjs_char *familyName);
-	const tjs_char *getFamilyName() { return familyName.c_str(); }
+        const tjs_char *getFamilyName() const { return familyName.c_str(); }
 	void setEmSize(tjs_real emSize) { this->emSize = emSize; propertyModified = true; }
-	tjs_real getEmSize() {  return emSize; }
+        tjs_real getEmSize() const {  return emSize; }
 	void setStyle(tjs_int style) { this->style = style; propertyModified = true; }
-	tjs_int getStyle() { return style; }
+        tjs_int getStyle() const { return style; }
     void setForceSelfPathDraw(bool state);
     bool getForceSelfPathDraw(void) const;
     bool getSelfPathDraw(void) const;

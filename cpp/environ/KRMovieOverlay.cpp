@@ -35,11 +35,6 @@ VideoPresentOverlay::~VideoPresentOverlay()
         }
         delete pSprite;
     }
-    if (bufferData != NULL)
-    {
-        free(bufferData);
-        bufferData = NULL;
-    }
     TVPRemoveContinuousEventHook(this);
 }
 
@@ -91,13 +86,8 @@ void VideoPresentOverlay::OnContinuousCallback(tjs_uint64 tick)
             krkrsdl3::SDL_GL_CreateTexture(*pSprite);
             krkrsdl3::SDL_GL_JoinTexture(pSprite);
         }
-        int picSize = pic.height * pic.width * 4;
         int pitch = pic.width * 4;
-        if(bufferData == NULL) {
-            bufferData = (uint8_t *)malloc(picSize);
-        }
-        memcpy(bufferData, pic.rgba, picSize);
-        krkrsdl3::SDL_GL_UpdateTexture(pSprite, bufferData, pic.width, pic.height);
+        krkrsdl3::SDL_GL_UpdateTexture(pSprite, pic.rgba, pic.width, pic.height, pitch);
     }
 }
 

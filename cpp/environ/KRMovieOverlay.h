@@ -15,7 +15,6 @@ NS_KRMOVIE_BEGIN
 class VideoPresentOverlay : public TVPMoviePlayer, public tTVPContinuousEventCallbackIntf {
 protected:
     SDL_Sprite *pSprite;
-    uint8_t *bufferData = NULL;
 
     VideoPresentOverlay();
     ~VideoPresentOverlay();

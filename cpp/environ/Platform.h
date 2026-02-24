@@ -39,7 +39,7 @@ public:
 	void TJS_INTF_METHOD SetEndOfStorage();
 
 	tjs_uint64 TJS_INTF_METHOD GetSize();
-	const std::string& TJS_INTF_METHOD GetFileName() { return FileName.AsStdString(); }
+	const std::string TJS_INTF_METHOD GetFileName() { return FileName.AsStdString(); }
 
         void* GetHandle() const { return Handle; }
 };

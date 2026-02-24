@@ -124,7 +124,7 @@ public:
                                            tjs_uint write_size) {
         return 0;
     }
-    virtual const std::string &TJS_INTF_METHOD GetFileName() { return ""; }
+    virtual const std::string TJS_INTF_METHOD GetFileName() { return ""; }
     virtual tjs_uint64 TJS_INTF_METHOD GetSize() { return DataLength; }
 };
 

@@ -143,7 +143,7 @@ protected:
 		return isFile(value) ? value.AsOctetNoAddRef()->GetLength() : 0;
 	}
 
-	const std::string& TJS_INTF_METHOD GetFileName() { return ""; };
+	const std::string TJS_INTF_METHOD GetFileName() { return ""; };
 
 private:
 	int refCount;

@@ -713,11 +713,13 @@ int TVPShowSimpleMessageBox(const ttstr& text, const ttstr& caption, const std::
         sdlButtons.at(i) = btn;
     }
 
+    std::string titleStr = caption.AsStdString();
+    std::string textStr = text.AsStdString();
     SDL_MessageBoxData msgboxData = {
             SDL_MESSAGEBOX_INFORMATION,
             nullptr,
-            caption.AsStdString().c_str(),
-            text.AsStdString().c_str(),
+            titleStr.c_str(),
+            textStr.c_str(),
             static_cast<int>(vecButtons.size()),
             vecButtons.empty() ? nullptr : sdlButtons.data(),
             nullptr

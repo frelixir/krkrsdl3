@@ -19,7 +19,7 @@ public:
     uint64_t GetLength() { return m_nFileSize; }
     int Read(uint8_t* buf, int buf_size);
     int64_t Seek(int64_t offset, int whence);
-    const std::string& GetFileName() { return m_strFileName; }
+    const std::string GetFileName() { return m_strFileName; }
 };
 
 NS_KRMOVIE_END
