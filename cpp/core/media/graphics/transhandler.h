@@ -193,10 +193,6 @@ public:
 // tTVPDivisibleData
 //---------------------------------------------------------------------------
 // structure used by iTVPDivisibleTransHandler::Process
-#ifdef _WIN32
-#pragma pack(push, 4)
-#endif
-
 struct tTVPDivisibleData
 {
 	/*const*/tjs_int Left; // processing rectangle left
@@ -216,10 +212,6 @@ struct tTVPDivisibleData
 /* note that "Src2" will be null when transition type is ttSimple. */
 /* Src1Left, Src1Top, Src2Left, Src2Top are not used when the transition is
 	tutDivisible. */
-
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
 
 
 

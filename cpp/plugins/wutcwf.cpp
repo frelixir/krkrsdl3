@@ -9,7 +9,6 @@
 
 #define NCB_MODULE_NAME TJS_N("wutcwf.dll")
 
-#pragma pack(push,1)
 struct TTCWFHeader
 {
 	char mark[6];  // = "TCWF0\x1a" 
@@ -34,7 +33,6 @@ struct TTCWBlockHeader  // ブロックヘッダ ( ステレオの場合はブ�
 	unsigned char ima_stepindex;
 	TTCWUnexpectedPeak peaks[6];
 };
-#pragma pack(pop)
 
 static const int AdaptationTable[]= 
 {

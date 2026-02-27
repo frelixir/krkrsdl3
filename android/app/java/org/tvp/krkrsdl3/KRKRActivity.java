@@ -93,7 +93,6 @@ public class KRKRActivity extends SDLActivity {
 
     // override sdl functions
     static {
-        System.loadLibrary("c++_shared");
         System.loadLibrary("SDL3");
         System.loadLibrary("krkrsdl3");
     }

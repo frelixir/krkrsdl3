@@ -79,25 +79,8 @@ void TVPDetectCPU()
 {
     if(TVPCPUChecked) return;
     TVPCPUChecked = true;
-#if defined(__ANDROID__) || defined(WIN32)
-    TVPCPUFeatures |= TVP_CPU_FAMILY_ARM; // must be arm
-#if defined(__arm64__) || defined(__aarch64__) || defined(__LP64__) || defined(WIN32)
-	TVPCPUFeatures |= TVP_CPU_HAS_NEON; // aka. asimd
-#else
-    if((android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0) {
-        TVPCPUFeatures |= TVP_CPU_HAS_NEON;
-    }
-#endif
-#endif
-#ifdef __APPLE__
-    // must be iOS
-    TVPCPUFeatures |= TVP_CPU_FAMILY_ARM | TVP_CPU_HAS_NEON;
-#endif
-
-    tjs_uint32 features = 0;
-    features =  (TVPCPUFeatures & TVP_CPU_FEATURE_MASK);
-    TVPCPUType &= ~ TVP_CPU_FEATURE_MASK;
-    TVPCPUType |= features;
+	TVPCPUFeatures= 0;
+	TVPCPUType = 0;
 }
 //---------------------------------------------------------------------------
 

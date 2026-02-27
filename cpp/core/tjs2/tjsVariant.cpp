@@ -840,8 +840,8 @@ bool tTJSVariant::GreaterThan(const tTJSVariant &val2) const
 	tTJSVariantString *s1, *s2;
 	s1 = AsString();
 	s2 = val2.AsString();
-	const tjs_char *p1 = *s1;
-	const tjs_char *p2 = *s2;
+	const tjs_char *p1 = s1 ? (const tjs_char*)(*s1) : NULL;
+	const tjs_char *p2 = s2 ? (const tjs_char*)(*s2) : NULL;
 	if(!p1) p1=TJS_N("");
 	if(!p2) p2=TJS_N("");
 	bool res = TJS_strcmp(p1, p2)<0;
@@ -866,8 +866,8 @@ bool tTJSVariant::LittlerThan(const tTJSVariant &val2) const
 	tTJSVariantString *s1, *s2;
 	s1 = AsString();
 	s2 = val2.AsString();
-	const tjs_char *p1 = *s1;
-	const tjs_char *p2 = *s2;
+	const tjs_char *p1 = s1 ? (const tjs_char*)(*s1) : NULL;
+	const tjs_char *p2 = s2 ? (const tjs_char*)(*s2) : NULL;
 	if(!p1) p1=TJS_N("");
 	if(!p2) p2=TJS_N("");
 	bool res = TJS_strcmp(p1, p2)>0;

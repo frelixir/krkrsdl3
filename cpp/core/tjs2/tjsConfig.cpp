@@ -269,14 +269,14 @@ tjs_int TJS_timezone() {
     std::time_t now = std::time(nullptr);
     std::tm local_tm, utc_tm;
 
-#if defined(_WIN32)
+#if defined(_KRKRSDL3_WINDOWS)
     // Windows
     localtime_s(&local_tm, &now);
     gmtime_s(&utc_tm, &now);
-#elif defined(__ANDROID__)
+#elif defined(_KRKRSDL3_ANDROID)
     localtime_r(&now, &local_tm);
     gmtime_r(&now, &utc_tm);
-#elif defined(__linux__)
+#elif defined(_KRKRSDL3_LINUX)
     localtime_r(&now, &local_tm);
     gmtime_r(&now, &utc_tm);
 #else
@@ -1193,11 +1193,28 @@ void TJSRestoreFPUE()
 
 int TJS_strcmp(const tjs_char* src, const tjs_char* dst)
 {
+    if (src == NULL || dst == NULL) {
+        if (src == NULL && dst == NULL) return 0; 
+        if (src == NULL) return -1;
+        return 1;
+    }
     return strcmp(src, dst);
 }
 
 int TJS_strncmp( const tjs_char* first, const tjs_char* last, size_t count)
 {
+    if (count == 0) {
+        return 0;
+    }
+    if (first == NULL || last == NULL) {
+        if (first == NULL && last == NULL) {
+            return 0; 
+        }
+        if (first == NULL) {
+            return -1;
+        }
+        return 1;
+    }
     return strncmp(first, last, count);
 }
 

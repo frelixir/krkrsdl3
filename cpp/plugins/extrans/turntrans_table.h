@@ -4,7 +4,6 @@
 #ifndef turntrans_table_H
 #define turntrans_table_H
 
-#pragma pack(push, 4)
 struct tTurnTransParams
 {
 	int start;
@@ -16,7 +15,6 @@ struct tTurnTransParams
 	int stepx; // source step x ( * 65536 )
 	int stepy; // source step y ( * 65536 )
 };
-#pragma pack(pop)
 
 extern const tTurnTransParams TurnTransParams[64][64];
 

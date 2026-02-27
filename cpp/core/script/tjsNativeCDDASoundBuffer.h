@@ -34,12 +34,10 @@ extern tTVPCDDAVolumeControlType TVPCDDAVolumeControlType;
 //---------------------------------------------------------------------------
 // CD_AUDIO_VOLUME_DATA
 //---------------------------------------------------------------------------
-#pragma pack(push, 1)
 struct CD_AUDIO_VOLUME_DATA {
     unsigned long dwUnitNo;
     unsigned long dwVolume;
 };
-#pragma pack(pop)
 //---------------------------------------------------------------------------
 
 

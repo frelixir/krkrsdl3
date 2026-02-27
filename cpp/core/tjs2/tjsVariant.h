@@ -31,14 +31,12 @@ class tTJSString;
 // tTJSVariantOctet
 //---------------------------------------------------------------------------
 
-#pragma pack(push, 4)
 struct tTJSVariantOctet_S
 {
 	tjs_uint Length;
 	tjs_int RefCount;
 	tjs_uint8 *Data;
 };
-#pragma pack(pop)
 /*]*/
 
 /*start-of-tTJSVariantOctet*/
@@ -116,7 +114,6 @@ enum tTJSVariantType
 #endif
 
 /*[*/
-#pragma pack(push, 4)
 class iTJSDispatch2;
 struct tTJSVariantClosure_S
 {
@@ -146,7 +143,6 @@ struct tTJSVariant_S
 	};
 	tTJSVariantType vt;
 };
-#pragma pack(pop)
 /*]*/
 
 #ifdef __BORLANDC__

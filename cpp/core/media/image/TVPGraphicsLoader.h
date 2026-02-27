@@ -286,7 +286,6 @@ extern void TVPLoadGraphicProvince(tTVPBaseBitmap *dest, const ttstr &name, tjs_
 	#define BI_BITFIELDS	3
 #endif
 
-#pragma pack(push, 1)
 struct TVP_WIN_BITMAPFILEHEADER
 {
 	tjs_uint16	bfType;
@@ -309,7 +308,6 @@ struct TVP_WIN_BITMAPINFOHEADER
 	tjs_uint32	biClrUsed;
 	tjs_uint32	biClrImportant;
 };
-#pragma pack(pop)
 
 enum tTVPBMPAlphaType
 {

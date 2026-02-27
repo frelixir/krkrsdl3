@@ -59,7 +59,6 @@ extern void TJSVS_free(tjs_char* buf);
 //---------------------------------------------------------------------------
 // tTJSVariantString
 //---------------------------------------------------------------------------
-#pragma pack(push, 4)
 struct tTJSVariantString_S
 {
 	//tjs_int RefCount; // reference count - 1
@@ -70,7 +69,6 @@ struct tTJSVariantString_S
 	tjs_uint32 HeapFlag;
 	tjs_uint32 Hint;
 };
-#pragma pack(pop)
 /*]*/
 
 

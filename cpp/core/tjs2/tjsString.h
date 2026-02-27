@@ -22,14 +22,12 @@ namespace TJS
 //---------------------------------------------------------------------------
 // tTJSStringBufferLength
 //---------------------------------------------------------------------------
-#pragma pack(push, 4)
 class tTJSStringBufferLength
 {
 public:
     tjs_int n;
     tTJSStringBufferLength(tjs_int n) {this->n = n;}
 };
-#pragma pack(pop)
 /*]*/
 //---------------------------------------------------------------------------
 
@@ -44,13 +42,11 @@ extern const tjs_char *TJSNullStrPtr;
 //---------------------------------------------------------------------------
 // tTJSString
 //---------------------------------------------------------------------------
-#pragma pack(push, 4)
 class tTJSVariantString;
 struct tTJSString_S
 {
     tTJSVariantString *Ptr;
 };
-#pragma pack(pop)
 class tTJSString;
 /*]*/
 

@@ -5,7 +5,6 @@
 #include "tjsCommHead.h"
 #include "UtilStreams.h"
 
-#pragma pack(push, 1)
 struct tTVPPrerenderedCharacterItem
 {
 	tjs_uint32 Offset;
@@ -18,7 +17,6 @@ struct tTVPPrerenderedCharacterItem
 	tjs_int16 Inc;
 	tjs_uint16 Reserved;
 };
-#pragma pack(pop)
 
 //---------------------------------------------------------------------------
 // tTVPPrerenderedFont

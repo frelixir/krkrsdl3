@@ -2,7 +2,11 @@
     "dependencies": [
         "oniguruma",
         "zlib",
-        "ffmpeg",
+        {
+            "name": "ffmpeg",
+            "features": ["avcodec", "avformat", "swresample", "swscale"],
+            "default-features": false
+        },
         "libpng",
         "libwebp",
         "libjpeg-turbo",
@@ -24,6 +28,7 @@
             "platform": "android"
         },
         "glm",
+        "highway",
         "blend2d",
 
         {

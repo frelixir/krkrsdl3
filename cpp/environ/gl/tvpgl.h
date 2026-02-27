@@ -27,7 +27,6 @@
 /*]*/
 
 /*[*/
-#pragma pack(push, 4)
 typedef struct
 {
 	/* structure used for adjustment of gamma levels */
@@ -42,7 +41,6 @@ typedef struct
 	tjs_int BFloor;
 	tjs_int BCeil;
 } tTVPGLGammaAdjustData;
-#pragma pack(pop)
 /*]*/
 
 #if 1
@@ -194,14 +192,12 @@ static tjs_uint32 TVP_INLINE_FUNC TVPBlendARGB(tjs_uint32 b, tjs_uint32 a, tjs_i
 
 
 /*[*/
-#pragma pack(push, 4)
 typedef struct
 {
 	tjs_uint8 B[256];
 	tjs_uint8 G[256];
 	tjs_uint8 R[256];
 } tTVPGLGammaAdjustTempData;
-#pragma pack(pop)
 /*]*/
 /* begin function list */
 TVP_GL_FUNC_PTR_EXTERN_DECL(void, TVPAlphaBlend,  (tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len));

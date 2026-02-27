@@ -30,11 +30,6 @@
 #include "tjs.h"
 #include "FuncStubs.h"
 
-#pragma pack(push, 8)
-	///  tvpsnd.h needs packing size of 8
-	//#include "tvpsnd.h"
-#pragma pack(pop)
-
 #include "TVPApplication.h"
 #include "SDL3/SDL.h"
 #include <set>

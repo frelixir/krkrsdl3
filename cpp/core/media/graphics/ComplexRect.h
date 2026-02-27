@@ -29,13 +29,11 @@ extern bool TVPUnionRect(tTVPRect* dest, const tTVPRect& src1, const tTVPRect& s
 //---------------------------------------------------------------------------
 // tTVPRect - simple rectangle structure
 //---------------------------------------------------------------------------
-#pragma pack(push, 4)
 struct tTVPPoint
 {
 	tjs_int x;
 	tjs_int y;
 };
-#pragma pack(pop)
 //---------------------------------------------------------------------------
 struct tTVPPointD
 {

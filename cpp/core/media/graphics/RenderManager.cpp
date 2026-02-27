@@ -22,14 +22,12 @@ typedef uint32_t tTJSPointerSizedInteger;
 // this must be a integer type that has the same size with the normal
 // pointer ( void *)
 //---------------------------------------------------------------------------
-#pragma pack(push, 1)
 struct tTVPLayerBitmapMemoryRecord {
     void* alloc_ptr; // allocated pointer
     tjs_uint size; // original bmp bits size, in bytes
     tjs_uint32 sentinel_backup1; // sentinel value 1
     tjs_uint32 sentinel_backup2; // sentinel value 2
 };
-#pragma pack(pop)
 
 static uint64_t _totalVMemSize = 0;
 

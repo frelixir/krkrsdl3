@@ -106,9 +106,7 @@ tjs_int TJSGetShorterStrLen(const tjs_char* str, tjs_int max)
 //---------------------------------------------------------------------------
 // StringHeap
 //---------------------------------------------------------------------------
-#ifdef _KRKRSDL3_ANDROID
-#define TJS_VS_USE_SYSTEM_NEW
-#endif
+//#define TJS_VS_USE_SYSTEM_NEW
 
 #define HEAP_FLAG_USING 0x01
 #define HEAP_FLAG_DELETE 0x02
