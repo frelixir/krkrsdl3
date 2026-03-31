@@ -502,24 +502,6 @@ static int read_integer(tTJSString const& str, const tjs_char* p, int& value)
 static const char* constChar = "\t ";
 bool TextRenderBase::render(tTJSString text, int autoIndent, int diff, int all, bool same)
 {
-    // 提前检查y的对齐方式
-    if (m_state.valign == kTextRenderAlignmentLeft)
-    {
-        // 正常搞
-        curr_y = m_boxTop;
-    }
-    else if (m_state.valign == kTextRenderAlignmentRight)
-    {
-        // 从底部开始
-        curr_y = m_boxTop + m_boxHeight - m_state.fontsize;
-    }
-    else
-    {
-        // 感觉为了高效实现对齐和实时渲染，以后可能得改整个textrender的流程
-        // 不考虑多行了，现在的流程不好搞
-        curr_y = m_boxTop + (m_boxHeight - GetCurrentRasterizer()->GetAscentHeight()) / 2;
-    }
-
     const tjs_char* p = text.c_str();
     for (; *p; p++)
     {
@@ -1215,7 +1197,23 @@ void TextRenderBase::clear()
     m_overflow = false;
 
     curr_x = 0;
-    curr_x = 0;
+    // 提前检查y的对齐方式
+    if (m_state.valign == kTextRenderAlignmentLeft)
+    {
+        // 正常搞
+        curr_y = m_boxTop;
+    }
+    else if (m_state.valign == kTextRenderAlignmentRight)
+    {
+        // 从底部开始
+        curr_y = m_boxTop + m_boxHeight - m_state.fontsize;
+    }
+    else
+    {
+        // 感觉为了高效实现对齐和实时渲染，以后可能得改整个textrender的流程
+        // 不考虑多行了，现在的流程不好搞
+        curr_y = m_boxTop + (m_boxHeight - GetCurrentRasterizer()->GetAscentHeight()) / 2;
+    }
     m_indent = 0;
 
     m_isBeginningOfLine = true;
