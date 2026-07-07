@@ -19,7 +19,9 @@
 #include "WaveLoopManager.h"
 
 #include "WaveIntf.h"
-#include "SDL3/SDL.h"
+#include "PlatformMutex.h"
+
+#include <SDL3/SDL_stdinc.h>
 
 //---------------------------------------------------------------------------
 const int TVPWaveLoopLinkGiveUpCount = 10;

@@ -3,7 +3,6 @@
 #include "cpu_types.h"
 #include "transhandler.h"
 #include "tjsErrorDefs.h"
-#include "DetectCPU.h"
 #include "TVPMsg.h"
 #include "TransIntf.h"
 #include <math.h>

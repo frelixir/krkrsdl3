@@ -3,7 +3,7 @@
 #include "TVPTimer.h"
 #include "TickCount.h"
 #include "TVPSystem.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "NativeEventQueue.h"
 
 struct tTVPTimerImpl

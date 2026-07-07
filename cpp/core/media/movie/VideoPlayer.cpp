@@ -6,7 +6,7 @@
 #include "TVPApplication.h"
 #include "VideoPlayerAudio.h"
 #include "VideoPlayerVideo.h"
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
 #include "krmovie.h"
 
 #include <algorithm>
@@ -20,7 +20,7 @@ NS_KRMOVIE_BEGIN
 
 void CSelectionStreams::Clear(AVMediaType type)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_section);
+    tTJSCriticalSectionHolder lock(m_section);
     auto new_end = std::remove_if(m_Streams.begin(), m_Streams.end(),
                                   [type](const SelectionStream& stream) {
                                       return (type == AVMEDIA_TYPE_UNKNOWN || stream.type == type);
@@ -30,7 +30,7 @@ void CSelectionStreams::Clear(AVMediaType type)
 
 int CSelectionStreams::IndexOf(AVMediaType type, int id)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_section);
+    tTJSCriticalSectionHolder lock(m_section);
     int count = -1;
     for (size_t i = 0; i < m_Streams.size(); i++)
     {
@@ -48,9 +48,23 @@ int CSelectionStreams::IndexOf(AVMediaType type, int id)
         return -1;
 }
 
+static SelectionStream g_InvalidStream;
+static SelectionStream& SelectionStreams_Get_NoLock(std::vector<SelectionStream>& streams,
+                                                     AVMediaType type, int index)
+{
+    int count = -1;
+    for (size_t i = 0; i < streams.size(); i++)
+    {
+        if (streams[i].type != type) continue;
+        count++;
+        if (count == index) return streams[i];
+    }
+    return g_InvalidStream;
+}
+
 SelectionStream& CSelectionStreams::Get(AVMediaType type, int index)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_section);
+    tTJSCriticalSectionHolder lock(m_section);
     int count = -1;
     for (size_t i = 0; i < m_Streams.size(); i++)
     {
@@ -73,7 +87,7 @@ std::vector<SelectionStream> CSelectionStreams::Get(AVMediaType type)
 
 bool CSelectionStreams::Get(AVMediaType type, int flag, SelectionStream& out)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_section);
+    tTJSCriticalSectionHolder lock(m_section);
     for (size_t i = 0; i < m_Streams.size(); i++)
     {
         if (m_Streams[i].type != type)
@@ -86,10 +100,24 @@ bool CSelectionStreams::Get(AVMediaType type, int flag, SelectionStream& out)
     return false;
 }
 
+static int SelectionStreams_IndexOf_NoLock(const std::vector<SelectionStream>& streams,
+                                            AVMediaType type, int id)
+{
+    int count = -1;
+    for (size_t i = 0; i < streams.size(); i++)
+    {
+        if (streams[i].type != type) continue;
+        count++;
+        if (id < 0) continue;
+        if (streams[i].id == id) return streams[i].type_index;
+    }
+    return (id < 0) ? count : -1;
+}
+
 void CSelectionStreams::Update(SelectionStream& s)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_section);
-    int index = IndexOf(s.type, s.id);
+    tTJSCriticalSectionHolder lock(m_section);
+    int index = SelectionStreams_IndexOf_NoLock(m_Streams, s.type, s.id);
     if (index >= 0)
     {
         SelectionStream& o = Get(s.type, index);
@@ -98,7 +126,7 @@ void CSelectionStreams::Update(SelectionStream& s)
     }
     else
     {
-        s.type_index = Count(s.type);
+        s.type_index = SelectionStreams_IndexOf_NoLock(m_Streams, s.type, -1) + 1;
         m_Streams.push_back(s);
     }
 }
@@ -186,8 +214,8 @@ void BasePlayer::Pause()
 
 void BasePlayer::GetVideoSize(long* width, long* height)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_SelectionStreams.m_section);
-    int streamId = GetVideoStream();
+    tTJSCriticalSectionHolder lock(m_SelectionStreams.m_section);
+    int streamId = GetVideoStream_NoLock();
 
     if (streamId < 0)
     {
@@ -196,7 +224,8 @@ void BasePlayer::GetVideoSize(long* width, long* height)
         return;
     }
 
-    SelectionStream& s = m_SelectionStreams.Get(AVMEDIA_TYPE_VIDEO, streamId);
+    SelectionStream& s = SelectionStreams_Get_NoLock(m_SelectionStreams.m_Streams,
+                                                      AVMEDIA_TYPE_VIDEO, streamId);
 
     *width = s.width;
     *height = s.height;
@@ -290,7 +319,7 @@ bool BasePlayer::IsPlaying() const
 
 bool BasePlayer::CanSeek()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_StateSection);
+    tTJSUniqueLock lock(m_StateSection);
     return m_State.canseek;
 }
 
@@ -1047,7 +1076,7 @@ void BasePlayer::SeekTime(int64_t iTime)
 // return the time in milliseconds
 int64_t BasePlayer::GetTime()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_StateSection);
+    tTJSUniqueLock lock(m_StateSection);
     double offset = 0;
     const double limit = DVD_MSEC_TO_TIME(500);
     if (m_State.timestamp > 0)
@@ -1072,10 +1101,19 @@ int BasePlayer::GetVideoStream()
 {
     return m_SelectionStreams.IndexOf(AVMEDIA_TYPE_VIDEO, m_CurrentVideo.id);
 }
+int BasePlayer::GetVideoStream_NoLock()
+{
+    return SelectionStreams_IndexOf_NoLock(m_SelectionStreams.m_Streams,
+                                           AVMEDIA_TYPE_VIDEO, m_CurrentVideo.id);
+}
 
 int BasePlayer::GetVideoStreamCount()
 {
     return m_SelectionStreams.Count(AVMEDIA_TYPE_VIDEO);
+}
+static int GetStreamCount_NoLock(const std::vector<SelectionStream>& streams, AVMediaType type)
+{
+    return SelectionStreams_IndexOf_NoLock(streams, type, -1) + 1;
 }
 
 int BasePlayer::GetAudioStreamCount()
@@ -1086,6 +1124,11 @@ int BasePlayer::GetAudioStreamCount()
 int BasePlayer::GetAudioStream()
 {
     return m_SelectionStreams.IndexOf(AVMEDIA_TYPE_AUDIO, m_CurrentAudio.id);
+}
+int BasePlayer::GetAudioStream_NoLock()
+{
+    return SelectionStreams_IndexOf_NoLock(m_SelectionStreams.m_Streams,
+                                           AVMEDIA_TYPE_AUDIO, m_CurrentAudio.id);
 }
 
 void BasePlayer::HandlePlaySpeed()
@@ -1722,7 +1765,7 @@ void BasePlayer::UpdatePlayState(double timeout)
 
     state.timestamp = m_clock.GetAbsoluteClock();
 
-    std::unique_lock<std::recursive_mutex> lock(m_StateSection);
+    tTJSUniqueLock lock(m_StateSection);
     m_State = state;
 }
 
@@ -1731,16 +1774,17 @@ void BasePlayer::UpdateStreamInfos()
     if (!m_pDemuxer)
         return;
 
-    std::lock_guard<std::recursive_mutex> lock(m_SelectionStreams.m_section);
+    tTJSCriticalSectionHolder lock(m_SelectionStreams.m_section);
     int streamId;
     std::string retVal;
 
     // video
-    streamId = GetVideoStream();
+    streamId = GetVideoStream_NoLock();
 
-    if (streamId >= 0 && streamId < GetVideoStreamCount())
+    if (streamId >= 0 && streamId < GetStreamCount_NoLock(m_SelectionStreams.m_Streams, AVMEDIA_TYPE_VIDEO))
     {
-        SelectionStream& s = m_SelectionStreams.Get(AVMEDIA_TYPE_VIDEO, streamId);
+        SelectionStream& s = SelectionStreams_Get_NoLock(m_SelectionStreams.m_Streams,
+                                                          AVMEDIA_TYPE_VIDEO, streamId);
         s.aspect_ratio = m_VideoPlayerVideo->GetAspectRatio();
         AVStream* stream = m_pDemuxer->GetStream(m_CurrentVideo.id);
         if (stream && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
@@ -1754,11 +1798,12 @@ void BasePlayer::UpdateStreamInfos()
     }
 
     // audio
-    streamId = GetAudioStream();
+    streamId = GetAudioStream_NoLock();
 
-    if (streamId >= 0 && streamId < GetAudioStreamCount())
+    if (streamId >= 0 && streamId < GetStreamCount_NoLock(m_SelectionStreams.m_Streams, AVMEDIA_TYPE_AUDIO))
     {
-        SelectionStream& s = m_SelectionStreams.Get(AVMEDIA_TYPE_AUDIO, streamId);
+        SelectionStream& s = SelectionStreams_Get_NoLock(m_SelectionStreams.m_Streams,
+                                                          AVMEDIA_TYPE_AUDIO, streamId);
         AVStream* stream = m_pDemuxer->GetStream(m_CurrentAudio.id);
         if (stream && stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
         {

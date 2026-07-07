@@ -1,8 +1,7 @@
 #include "tjsCommHead.h"
 #include "VideoPlayerAudio.h"
 
-#include <thread>
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
 #include "CodecAudioFFmpeg.h"
 
 NS_KRMOVIE_BEGIN
@@ -164,7 +163,7 @@ void CVideoPlayerAudio::UpdatePlayerInfo()
     info.passthrough = false;
 
     {
-        std::unique_lock<std::recursive_mutex> lock(m_info_section);
+        tTJSUniqueLock lock(m_info_section);
         m_info = info;
     }
 }
@@ -463,7 +462,7 @@ bool CVideoPlayerAudio::SwitchCodecIfNeeded()
 
 std::string CVideoPlayerAudio::GetPlayerInfo()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_info_section);
+    tTJSUniqueLock lock(m_info_section);
     return m_info.info;
 }
 
@@ -479,7 +478,7 @@ int CVideoPlayerAudio::GetAudioChannels()
 
 bool CVideoPlayerAudio::IsPassthrough()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_info_section);
+    tTJSUniqueLock lock(m_info_section);
     return m_info.passthrough;
 }
 
@@ -598,8 +597,8 @@ unsigned int CVideoPlayerAudio::AddPackets(const DVDAudioFrame& audioframe)
             _timer.Set(1000);
             while (!m_soundDevice->IsBufferValid())
             {
-                std::unique_lock<std::mutex> lk(_mutex);
-                _cond.wait_for(lk, std::chrono::milliseconds(10));
+                tTJSUniqueLock lk(_mutex);
+                _cond.WaitFor(_mutex, 10);
                 if (_timer.IsTimePast())
                 {
                     copied = -1;
@@ -654,8 +653,8 @@ unsigned int CVideoPlayerAudio::AddPackets(const DVDAudioFrame& audioframe)
         {
             break;
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        
+        TVPSleepFor(1);
     } while (!m_bAbort);
 
     m_playingPts = audioframe.pts + audioframe.duration;

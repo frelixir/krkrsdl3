@@ -2,9 +2,10 @@
 #ifndef __GRAPHICS_LOAD_THREAD_H__
 #define __GRAPHICS_LOAD_THREAD_H__
 
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "NativeEventQueue.h"
 #include "TVPGraphicsLoader.h"
+#include "PlatformMutex.h"
 
 // BaseBitmap を使うとリエントラントではないので、別の構造体に独自にロードする必要がある
 struct tTVPTmpBitmapImage

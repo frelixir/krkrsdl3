@@ -33,10 +33,8 @@ void CDVDMessageQueue::Init()
     m_drain = false;
 }
 
-void CDVDMessageQueue::Flush(CDVDMsg::Message type)
+void CDVDMessageQueue::Flush_NoLock(CDVDMsg::Message type)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
-
     m_messages.remove_if([type](const DVDMessageListItem& item)
                          { return type == CDVDMsg::NONE || item.message->IsType(type); });
 
@@ -51,9 +49,15 @@ void CDVDMessageQueue::Flush(CDVDMsg::Message type)
     }
 }
 
+void CDVDMessageQueue::Flush(CDVDMsg::Message type)
+{
+    tTJSUniqueLock lock(m_section);
+    Flush_NoLock(type);
+}
+
 void CDVDMessageQueue::Abort()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     m_bAbortRequest = true;
 
@@ -63,9 +67,9 @@ void CDVDMessageQueue::Abort()
 
 void CDVDMessageQueue::End()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
-    Flush(CDVDMsg::NONE);
+    Flush_NoLock(CDVDMsg::NONE);
 
     m_bInitialized = false;
     m_iDataSize = 0;
@@ -74,7 +78,7 @@ void CDVDMessageQueue::End()
 
 MsgQueueReturnCode CDVDMessageQueue::Put(CDVDMsg* pMsg, int priority, bool front)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     if (!m_bInitialized)
     {
@@ -133,7 +137,7 @@ MsgQueueReturnCode CDVDMessageQueue::Get(CDVDMsg** pMsg,
                                          unsigned int iTimeoutInMilliSeconds,
                                          int& priority)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     *pMsg = NULL;
 
@@ -183,9 +187,8 @@ MsgQueueReturnCode CDVDMessageQueue::Get(CDVDMsg** pMsg,
             m_section.unlock();
 
             // wait for a new message
-            std::unique_lock<std::mutex> eventLock(m_mtxEvent);
-            if (m_hEvent.wait_for(eventLock, std::chrono::milliseconds(iTimeoutInMilliSeconds)) ==
-                std::cv_status::timeout)
+            tTJSUniqueLock eventLock(m_mtxEvent);
+            if (!m_hEvent.WaitFor(m_mtxEvent, iTimeoutInMilliSeconds))
             {
                 m_section.lock();
                 return MSGQ_TIMEOUT;
@@ -203,7 +206,7 @@ MsgQueueReturnCode CDVDMessageQueue::Get(CDVDMsg** pMsg,
 
 unsigned CDVDMessageQueue::GetPacketCount(CDVDMsg::Message type)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     if (!m_bInitialized)
         return 0;
@@ -226,7 +229,7 @@ unsigned CDVDMessageQueue::GetPacketCount(CDVDMsg::Message type)
 void CDVDMessageQueue::WaitUntilEmpty()
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_section);
+        tTJSUniqueLock lock(m_section);
         m_drain = true;
     }
 
@@ -236,14 +239,14 @@ void CDVDMessageQueue::WaitUntilEmpty()
     msg->Release();
 
     {
-        std::unique_lock<std::recursive_mutex> lock(m_section);
+        tTJSUniqueLock lock(m_section);
         m_drain = false;
     }
 }
 
 int CDVDMessageQueue::GetLevel()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     if (m_iDataSize > m_iMaxDataSize)
         return 100;
@@ -272,7 +275,7 @@ void CDVDMessageQueue::SetMaxTimeSize(double sec)
 
 int CDVDMessageQueue::GetTimeSize()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_section);
+    tTJSUniqueLock lock(m_section);
 
     if (IsDataBased())
         return 0;

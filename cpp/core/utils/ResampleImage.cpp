@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "WeightFunctor.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "LayerBitmap.h"
 
 #include "aligned_allocator.h"

@@ -1,8 +1,8 @@
-
 #include "tjsCommHead.h"
 
+#include "tjsUtils.h"
+#include "PlatformMutex.h"
 #include "GraphicsLoadThread.h"
-#include "TVPThread.h"
 #include "TVPEvent.h"
 #include "TVPStorage.h"
 #include "LayerBitmap.h"

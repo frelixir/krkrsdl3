@@ -1,5 +1,5 @@
 #pragma once
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "IVideoPlayer.h"
 #include "CodecAudio.h"
 #include "MessageQueue.h"
@@ -11,10 +11,8 @@ extern "C"
 #include <libswresample/swresample.h>
 #include "libavcodec/avcodec.h"
 }
-#include <stdint.h>
-#include <atomic>
-#include <mutex>
-#include "WaveMixer.h"
+#include <cstdint>
+#include "PlatformAudio.h"
 
 NS_KRMOVIE_BEGIN
 
@@ -58,7 +56,7 @@ public:
 
     double GetCurrentPts() override
     {
-        std::unique_lock<std::recursive_mutex> lock(m_info_section);
+        tTJSUniqueLock lock(m_info_section);
         return m_info.pts;
     }
 
@@ -112,7 +110,7 @@ protected:
         bool passthrough;
     };
 
-    std::recursive_mutex m_info_section;
+    tTJSCriticalSection m_info_section;
     SInfo m_info;
 
     void Pause();
@@ -138,8 +136,8 @@ protected:
     double m_syncError = 0;
     unsigned int m_syncErrorTime = 0;
     std::atomic_bool m_bAbort;
-    std::mutex _mutex;
-    std::condition_variable _cond;
+    tTJSCriticalSection _mutex;
+    tTVPCondition _cond;
     TVPElapsedTimer _timer;
 };
 

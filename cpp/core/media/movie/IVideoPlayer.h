@@ -2,7 +2,7 @@
 #include "KRMovieDef.h"
 #include "KRStreamInfo.h"
 #include "Message.h"
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
 #include <string>
 #include "BaseRenderer.h"
 

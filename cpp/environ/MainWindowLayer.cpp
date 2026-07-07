@@ -3,12 +3,12 @@
 #include "TVPWindow.h"
 #include "VelocityTracker.h"
 #include "Platform.h"
+#include "PlatformThread.h"
 #include "Random.h"
 #include "TVPApplication.h"
 #include "RenderManager.h"
 #include "WindowIntf.h"
 #include "TVPSystem.h"
-#include <thread>
 
 #include "SDL3/SDL.h"
 
@@ -561,7 +561,7 @@ public:
             }
             else if (remain > 0)
             {
-                std::this_thread::sleep_for(std::chrono::milliseconds(remain));
+                TVPSleepFor(remain);
             }
         }
         in_mode_ = false;

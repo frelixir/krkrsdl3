@@ -3,6 +3,7 @@
 #include "TVPEvent.h"
 
 #include "tjsNative.h"
+#include "PlatformMutex.h"
 
 template<typename T>
 struct ObjectVector : public std::vector<T*>

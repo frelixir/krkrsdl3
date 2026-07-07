@@ -11,7 +11,7 @@
 #include "SystemControl.h"
 #include "TVPApplication.h"
 #include "NativeEventQueue.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 
 //---------------------------------------------------------------------------
 // tTVPEvent  : script event class

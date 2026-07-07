@@ -1,8 +1,8 @@
 #pragma once
 #include "KRMovieDef.h"
 #include "Message.h"
-#include <mutex>
-#include <condition_variable>
+#include "PlatformThread.h"
+#include "PlatformMutex.h"
 #include <list>
 #include <algorithm>
 #include <string>
@@ -82,9 +82,10 @@ public:
     bool IsDataBased() const;
 
 private:
-    std::mutex m_mtxEvent;
-    std::condition_variable m_hEvent;
-    std::recursive_mutex m_section;
+    void Flush_NoLock(CDVDMsg::Message type);
+    tTJSCriticalSection m_mtxEvent;
+    tTVPCondition m_hEvent;
+    tTJSCriticalSection m_section;
 
     std::atomic<bool> m_bAbortRequest;
     bool m_bInitialized;

@@ -23,8 +23,8 @@ public:
     }
     unsigned int sources;
     unsigned int reached;
-    std::recursive_mutex section;
-    std::condition_variable_any condition;
+    tTJSCriticalSection section;
+    tTVPCondition condition;
     TVPElapsedTimer timeout;
 };
 
@@ -44,7 +44,7 @@ CDVDMsgGeneralSynchronize::~CDVDMsgGeneralSynchronize()
 
 bool CDVDMsgGeneralSynchronize::Wait(unsigned int milliseconds, unsigned int source)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_p->section);
+    tTJSUniqueLock lock(m_p->section);
 
     TVPElapsedTimer timeout(milliseconds);
 
@@ -59,8 +59,7 @@ bool CDVDMsgGeneralSynchronize::Wait(unsigned int milliseconds, unsigned int sou
         milliseconds = std::min(m_p->timeout.MillisLeft(), timeout.MillisLeft());
         if (!milliseconds)
             milliseconds = 1;
-        if (m_p->condition.wait_for(lock, std::chrono::milliseconds(milliseconds)) !=
-            std::cv_status::timeout)
+        if (m_p->condition.WaitFor(m_p->section, milliseconds))
             continue;
 
         if (m_p->timeout.IsTimePast())

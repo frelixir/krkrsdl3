@@ -8,6 +8,7 @@
 #include "TickCount.h"
 #include "TVPApplication.h"
 #include "TVPScript.h"
+#include "TVPStorage.h"
 #include "TVPGraphicsLoader.h"
 #include "TVPMsg.h"
 #include "Random.h"

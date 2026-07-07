@@ -15,6 +15,7 @@
 
 #include "tjsTypes.h"
 #include "WaveSegmentQueue.h"
+#include "PlatformMutex.h"
 
 #define TVP_WL_MAX_FLAGS 16
 

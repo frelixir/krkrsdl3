@@ -10,6 +10,7 @@
 #include "krmovie.h"
 #include "KRMovieLayer.h"
 #include "TVPStorage.h"
+#include "PlatformThread.h"
 
 #define NCB_MODULE_NAME TJS_N("layerExMovie.dll")
 
@@ -53,7 +54,7 @@ protected:
     DispatchT onStopMovie;
 
     bool playing;
-    std::mutex mtxEvent;
+    tTJSCriticalSection mtxEvent;
     std::vector<KRMovieEvent> PostEvents;
 
 public:
@@ -160,7 +161,7 @@ void layerExMovie::openMovie(const tjs_char* filename, bool alpha)
     VideoLayer* pOverlay = new VideoLayer(
         [this](KRMovieEvent msg, void* p)
         {
-            std::lock_guard<std::mutex> lk(mtxEvent);
+            tTJSCriticalSectionHolder lk(mtxEvent);
             PostEvents.push_back(msg);
         });
     pOverlay->BuildGraph(in, filename, ext.c_str(), in->GetSize());
@@ -296,7 +297,7 @@ void layerExMovie::OnContinuousCallback(tjs_uint64 tick)
         VideoOverlay->OnContinuousCallback(tick);
         std::vector<KRMovieEvent> vecEvent;
         {
-            std::lock_guard<std::mutex> lk(mtxEvent);
+            tTJSCriticalSectionHolder lk(mtxEvent);
             vecEvent.swap(PostEvents);
         }
         for (KRMovieEvent msg : vecEvent)

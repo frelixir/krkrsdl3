@@ -21,6 +21,11 @@
 #define TVP_CPU_HAS_SSE2 0x00800000
 #define TVP_CPU_HAS_TSC 0x01000000
 #define TVP_CPU_HAS_NEON 0x02000000
+#define TVP_CPU_HAS_SSE3 0x04000000
+#define TVP_CPU_HAS_SSE41 0x10000000
+#define TVP_CPU_HAS_SSE42 0x20000000
+#define TVP_CPU_HAS_AVX 0x40000000
+#define TVP_CPU_HAS_AVX2 0x80000000
 
 #define TVP_CPU_FEATURE_MASK 0xffff0000
 
@@ -40,14 +45,7 @@
 #define TVP_CPU_FAMILY_X64 0x00000002
 #define TVP_CPU_FAMILY_ARM 0x00000003
 #define TVP_CPU_FAMILY_MIPS 0x00000003
-
 #define TVP_CPU_FAMILY_MASK 0x0000000f
-
-#ifdef __cplusplus
-extern "C" unsigned int TVPCPUFeatures;
-#else
-extern unsigned int TVPCPUFeatures;
-#endif
 
 // ;;[emit_c_h_equ_end]
 //

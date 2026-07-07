@@ -4,13 +4,12 @@
 
 #include "tjsVariant.h"
 #include "tjsString.h"
+#include "PlatformMutex.h"
 #include <vector>
 #include <functional>
-#include <mutex>
 #include <tuple>
 #include <map>
 
-bool IsInMainThread();
 ttstr ExePath();
 void TVPCheckMemory();
 
@@ -111,7 +110,7 @@ public:
         void* host, const std::function<void(void*, eTVPActiveEvent)>& func /*empty = unregister*/);
 
 private:
-    std::mutex m_msgQueueLock;
+    tTJSCriticalSection m_msgQueueLock;
 
     std::vector<std::tuple<void*, int, tMsg>> m_lstUserMsg;
     std::map<void*, std::function<void(void*, eTVPActiveEvent)>> m_activeEvents;

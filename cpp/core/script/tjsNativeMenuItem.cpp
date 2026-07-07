@@ -8,6 +8,7 @@
 #include "tjsDictionary.h"
 #include "tjsArray.h"
 #include "tjsNativeWindow.h"
+#include "PlatformMutex.h"
 #include <map>
 
 //---------------------------------------------------------------------------

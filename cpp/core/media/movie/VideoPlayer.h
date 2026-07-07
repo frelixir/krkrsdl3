@@ -1,13 +1,12 @@
 #pragma once
 #include "VideoReferenceClock.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "KRStreamInfo.h"
 #include "CodecDemux.h"
 #include "TVPTimer.h"
 #include "ComplexRect.h"
 #include "MessageQueue.h"
 #include "IVideoPlayer.h"
-#include <mutex>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -171,7 +170,7 @@ public:
         m_invalid.type = AVMEDIA_TYPE_UNKNOWN;
     }
     std::vector<SelectionStream> m_Streams;
-    std::recursive_mutex m_section;
+    tTJSCriticalSection m_section;
 
     int IndexOf(AVMediaType type, int id);
     int Count(AVMediaType type) { return IndexOf(type, -1) + 1; }
@@ -256,8 +255,10 @@ public:
     int GetCurrentFrame();
     int GetVideoStreamCount();
     int GetVideoStream();
+    int GetVideoStream_NoLock();
     int GetAudioStreamCount();
     int GetAudioStream();
+    int GetAudioStream_NoLock();
 
     void FlushBuffers(bool queued,
                       double pts = DVD_NOPTS_VALUE,
@@ -344,10 +345,10 @@ private:
     IDemux* m_pDemuxer = nullptr;          // demuxer for current playing file
 
     SPlayerState m_State;
-    std::recursive_mutex m_StateSection;
+    tTJSCriticalSection m_StateSection;
     TVPElapsedTimer m_syncTimer;
 
-    std::condition_variable m_ready;
+    tTVPCondition m_ready;
 
     bool m_HasVideo = false;
     bool m_HasAudio = false;

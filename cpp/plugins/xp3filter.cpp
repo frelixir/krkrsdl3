@@ -7,10 +7,10 @@
 #include "xp3filter.h"
 #include "TVPSystem.h"
 #include "TVPMsg.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
+#include "PlatformMutex.h"
 #include "TextStream.h"
 #include <memory>
-#include <thread>
 
 #include "tjsNativeDebug.h"
 #include "tjsNativeSystem.h"
@@ -454,13 +454,13 @@ static XP3FilterDecoder* AddXP3Decoder()
     return decoder;
 }
 
-static std::map<std::thread::id, XP3FilterDecoder*> _thread_decoders;
-static std::mutex _decoders_mtx;
+static std::map<uint64_t, XP3FilterDecoder*> _thread_decoders;
+static tTJSCriticalSection _decoders_mtx;
 static std::vector<XP3FilterDecoder*> _cached_decoders;
 static XP3FilterDecoder* FetchXP3Decoder()
 {
-    std::lock_guard<std::mutex> lk(_decoders_mtx);
-    auto it = _thread_decoders.find(std::this_thread::get_id());
+    tTJSCriticalSectionHolder lk(_decoders_mtx);
+    auto it = _thread_decoders.find(TVPGetCurrentThreadID());
     if (it != _thread_decoders.end())
     {
         XP3FilterDecoder* ret = it->second;
@@ -473,8 +473,8 @@ static XP3FilterDecoder* FetchXP3Decoder()
         TVPAddOnThreadExitEvent(
             []()
             {
-                std::lock_guard<std::mutex> lk(_decoders_mtx);
-                auto it = _thread_decoders.find(std::this_thread::get_id());
+                tTJSCriticalSectionHolder lk(_decoders_mtx);
+                auto it = _thread_decoders.find(TVPGetCurrentThreadID());
                 if (it != _thread_decoders.end())
                 {
                     _cached_decoders.emplace_back(it->second);
@@ -492,7 +492,7 @@ static XP3FilterDecoder* FetchXP3Decoder()
     {
         ret = AddXP3Decoder();
     }
-    _thread_decoders[std::this_thread::get_id()] = ret;
+    _thread_decoders[TVPGetCurrentThreadID()] = ret;
     return ret;
 }
 

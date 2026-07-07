@@ -1,7 +1,7 @@
 #pragma once
 #include "CodecDemux.h"
-#include <mutex>
 #include "TVPTimer.h"
+#include "PlatformMutex.h"
 
 NS_KRMOVIE_BEGIN
 
@@ -48,7 +48,7 @@ protected:
     double ConvertTimestamp(int64_t pts, int den, int num);
     bool IsProgramChange();
 
-    std::recursive_mutex m_critSection;
+    tTJSCriticalSection m_critSection;
 
     AVIOContext* m_ioContext;
 

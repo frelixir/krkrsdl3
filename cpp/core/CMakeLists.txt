@@ -17,7 +17,6 @@ set(KRKRSDL_CORE_SRC
     ${KRKRSDL_CORE_PATH}/main/TVPApplication.cpp
     ${KRKRSDL_CORE_PATH}/main/TVPEvent.cpp
     ${KRKRSDL_CORE_PATH}/main/TVPSystem.cpp
-    ${KRKRSDL_CORE_PATH}/main/TVPThread.cpp
     ${KRKRSDL_CORE_PATH}/main/WindowIntf.cpp
     ${KRKRSDL_CORE_PATH}/media/font/CharacterData.cpp
     ${KRKRSDL_CORE_PATH}/media/font/FreeTypeFontRasterizer.cpp

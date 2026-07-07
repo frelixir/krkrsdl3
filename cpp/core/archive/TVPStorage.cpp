@@ -17,9 +17,11 @@
 #include "TVPSystem.h"
 #include "TVPEvent.h"
 #include "Platform.h"
+#include "PlatformFile.h"
 #include "TickCount.h"
 #include "Random.h"
 #include "XP3Archive.h"
+#include "PlatformMutex.h"
 
 #define TVP_DEFAULT_ARCHIVE_CACHE_NUM 64
 #define TVP_DEFAULT_AUTOPATH_CACHE_NUM 256

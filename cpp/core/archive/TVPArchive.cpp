@@ -6,6 +6,7 @@
 #include "tjsUtils.h"
 #include "TVPStorage.h"
 #include "Platform.h"
+#include "PlatformMutex.h"
 
 //---------------------------------------------------------------------------
 // tTVPArchive

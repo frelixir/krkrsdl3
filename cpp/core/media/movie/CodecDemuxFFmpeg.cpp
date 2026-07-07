@@ -375,7 +375,7 @@ DemuxPacket* CDVDDemuxFFmpeg::Read()
 
     bool bReturnEmpty = false;
     {
-        std::unique_lock<std::recursive_mutex> lock(m_critSection); // open lock scope
+        tTJSCSH lock(m_critSection); // open lock scope
         if (m_pFormatContext)
         {
             // assume we are not eof
@@ -576,7 +576,7 @@ bool CDVDDemuxFFmpeg::SeekTime(int time, bool backwords, double* startpts)
 
     int ret;
     {
-        std::unique_lock<std::recursive_mutex> lock(m_critSection);
+        tTJSCSH lock(m_critSection);
         ret = av_seek_frame(m_pFormatContext, -1, seek_pts, backwords ? AVSEEK_FLAG_BACKWARD : 0);
 
         // demuxer can return failure, if seeking behind eof

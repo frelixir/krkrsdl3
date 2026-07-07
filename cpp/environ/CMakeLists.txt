@@ -1,13 +1,14 @@
 set(KRKRSDL_ENVIRON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cpp/environ)
 
 set(KRKRSDL_ENVIRON_SRC
-    ${KRKRSDL_ENVIRON_PATH}/DetectCPU.cpp
     ${KRKRSDL_ENVIRON_PATH}/MainWindowLayer.cpp
     ${KRKRSDL_ENVIRON_PATH}/Platform.cpp
-    ${KRKRSDL_ENVIRON_PATH}/WaveMixer.cpp
     ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_dialog.cpp
     ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_file.cpp
     ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_utils.cpp
+    ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_audio.cpp
+    ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_thread.cpp
+    ${KRKRSDL_ENVIRON_PATH}/sdl3/sdl3_entry.cpp
     )
 	
 if(ANDROID)

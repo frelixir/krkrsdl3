@@ -1,5 +1,6 @@
 #include "tjsCommHead.h"
 #include "Platform.h"
+#include "PlatformFile.h"
 
 #include <fstream>
 

@@ -20,7 +20,7 @@ tTVPBaseTexture* VideoPresentLayer::GetFrontBuffer()
         return nullptr;
     }
     {
-        std::lock_guard<std::mutex> lk(m_mtxPicture);
+        tTJSCriticalSectionHolder lk(m_mtxPicture);
         BitmapPicture& picbuf = m_picture[m_curPicture];
         picbuf.swap(pic);
         m_curPicture = (m_curPicture + 1) & (MAX_BUFFER_COUNT - 1);
@@ -48,7 +48,7 @@ void VideoPresentLayer::OnContinuousCallback(tjs_uint64 tick)
         return;
     double m_curpts = m_pPlayer->GetClock() / DVD_TIME_BASE;
     {
-        std::lock_guard<std::mutex> lk(m_mtxPicture);
+        tTJSCriticalSectionHolder lk(m_mtxPicture);
         BitmapPicture& picbuf = m_picture[m_curPicture];
         // check pts
         if (picbuf.pts > m_curpts)

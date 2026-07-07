@@ -1,7 +1,8 @@
 #pragma once
 
 #include "krmovie.h"
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
+#include "PlatformThread.h"
 
 #include "BaseRenderer.h"
 #include "VideoPlayer.h"
@@ -145,8 +146,8 @@ protected:
     };
     BitmapPicture m_picture[MAX_BUFFER_COUNT];
     int m_curPicture = 0, m_usedPicture = 0;
-    std::mutex m_mtxPicture;
-    std::condition_variable m_condPicture;
+    tTJSCriticalSection m_mtxPicture;
+    tTVPCondition m_condPicture;
     struct SwsContext* img_convert_ctx = nullptr;
     double m_curpts = 0;
 };

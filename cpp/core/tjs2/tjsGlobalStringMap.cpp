@@ -12,7 +12,6 @@
 
 #include "tjsGlobalStringMap.h"
 #include "tjsHashSearch.h"
-#include <mutex>
 
 /*
         Global String Map is a large string hash table, to share the string
@@ -122,11 +121,8 @@ void TJSReleaseGlobalStringMap()
     tTJSGlobalStringMap::Release();
 }
 //---------------------------------------------------------------------------
-static std::mutex _mutex;
 ttstr TJSMapGlobalStringMap(const ttstr& string)
 {
-    // for multi-thread
-    std::lock_guard<std::mutex> lk(_mutex);
     return tTJSGlobalStringMap::Map(string);
 }
 //---------------------------------------------------------------------------

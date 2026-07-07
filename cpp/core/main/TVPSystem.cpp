@@ -15,10 +15,10 @@
 #include "SystemControl.h"
 #include "FilePathUtil.h"
 #include "Platform.h"
-#include "DetectCPU.h"
+#include "PlatformThread.h"
+#include "PlatformFile.h"
 #include "XP3Archive.h"
 #include "MainWindowLayer.h"
-#include <thread>
 
 #include "tjsLex.h"
 #include "tjsNativeLayer.h"
@@ -1195,7 +1195,7 @@ static void TVPInitRandomGenerator()
 {
     tjs_uint32 tick = TVPGetRoughTickCount32();
     TVPPushEnvironNoise(&tick, sizeof(tick));
-    std::thread::id tid = std::this_thread::get_id();
+    uint64_t tid = TVPGetCurrentThreadID();
     TVPPushEnvironNoise(&tid, sizeof(tid));
     time_t curtime = time(NULL);
     TVPPushEnvironNoise(&curtime, sizeof(curtime));
@@ -1321,9 +1321,6 @@ static uint32_t TVPTimeBeginPeriodRes = 0;
 //---------------------------------------------------------------------------
 void TVPAfterSystemInit()
 {
-    // check CPU type
-    TVPDetectCPU();
-
     TVPAllocGraphicCacheOnHeap = false; // always false since beta 20
 
     // determine maximum graphic cache limit

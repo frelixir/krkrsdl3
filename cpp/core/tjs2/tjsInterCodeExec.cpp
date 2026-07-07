@@ -23,7 +23,6 @@
 #include "tjsOctPack.h"
 #include "tjsGlobalStringMap.h"
 #include <set>
-#include <mutex>
 
 #ifdef ENABLE_DEBUGGER
 #include "debugger.h"
@@ -33,7 +32,6 @@ static bool isDebuggerPresent()
 }
 #define IsDebuggerPresent isDebuggerPresent
 #endif // ENABLE_DEBUGGER
-#include <thread>
 
 namespace TJS
 {
@@ -562,8 +560,6 @@ public:
 #define TJS_VA_ONE_ALLOC_MAX 1024
 #define TJS_COMPACT_FREQ 10000
 static tjs_int TJSCompactVariantArrayMagic = 0;
-static std::mutex TJSVariantArrayStackMutex;
-static std::set<tTJSVariantArrayStack*> TJSVariantArrayStacks;
 //---------------------------------------------------------------------------
 tTJSVariantArrayStack::tTJSVariantArrayStack()
 {
@@ -572,8 +568,6 @@ tTJSVariantArrayStack::tTJSVariantArrayStack()
     Current = NULL;
     OperationDisabledCount = 0;
     CompactVariantArrayMagic = TJSCompactVariantArrayMagic;
-    std::lock_guard<std::mutex> lk(TJSVariantArrayStackMutex);
-    TJSVariantArrayStacks.insert(this);
 }
 //---------------------------------------------------------------------------
 tTJSVariantArrayStack::~tTJSVariantArrayStack()
@@ -585,8 +579,6 @@ tTJSVariantArrayStack::~tTJSVariantArrayStack()
         delete[] Arrays[i].Array;
     }
     TJS_free(Arrays), Arrays = NULL;
-    std::lock_guard<std::mutex> lk(TJSVariantArrayStackMutex);
-    TJSVariantArrayStacks.erase(this);
 }
 //---------------------------------------------------------------------------
 void tTJSVariantArrayStack::IncreaseVariantArray(tjs_int num)

@@ -18,6 +18,7 @@
 #include "TVPEvent.h"
 #include "UtilStreams.h"
 #include "TVPArchive.h"
+#include "PlatformMutex.h"
 
 #include <zlib.h>
 

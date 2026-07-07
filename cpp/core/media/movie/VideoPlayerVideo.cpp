@@ -754,7 +754,7 @@ bool CVideoPlayerVideo::Configure(
 
     // check if something has changed
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
 
         if (m_width == picture.iWidth && m_height == picture.iHeight &&
             m_dwidth == picture.iDisplayWidth && m_dheight == picture.iDisplayHeight &&
@@ -767,7 +767,7 @@ bool CVideoPlayerVideo::Configure(
 
     // make sure any queued frame was fully presented
     {
-        std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+        tTJSUniqueLock lock(m_presentlock);
         TVPElapsedTimer endtime(5000);
         while (m_presentstep != PRESENT_IDLE)
         {
@@ -775,12 +775,12 @@ bool CVideoPlayerVideo::Configure(
             {
                 return false;
             }
-            m_presentevent.wait_for(lock, std::chrono::milliseconds(endtime.MillisLeft()));
+            m_presentevent.WaitFor(m_presentlock, endtime.MillisLeft());
         }
     }
 
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
         m_width = picture.iWidth;
         m_height = picture.iHeight, m_dwidth = picture.iDisplayWidth;
         m_dheight = picture.iDisplayHeight;
@@ -793,21 +793,20 @@ bool CVideoPlayerVideo::Configure(
 
         CheckEnableClockSync();
 
-        std::unique_lock<std::recursive_mutex> lock2(m_presentlock);
+        tTJSUniqueLock lock2(m_presentlock);
         m_presentstep = PRESENT_READY;
         m_presentevent.notify_all();
     }
 
     return true;
 
-    std::unique_lock<std::recursive_mutex> stateLock(m_stateMutex);
-    if (m_stateEvent.wait_for(stateLock, std::chrono::milliseconds(1000)) ==
-        std::cv_status::timeout)
+    tTJSUniqueLock stateLock(m_stateMutex);
+    if (!m_stateEvent.WaitFor(m_stateMutex, 1000))
     {
         return false;
     }
 
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
+    tTJSUniqueLock lock(m_statelock);
     if (m_renderState != STATE_CONFIGURED)
     {
         return false;
@@ -819,9 +818,9 @@ bool CVideoPlayerVideo::Configure(
 bool CVideoPlayerVideo::Configure()
 {
     // lock all interfaces
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
-    std::unique_lock<std::recursive_mutex> lock2(m_presentlock);
-    std::unique_lock<std::recursive_mutex> lock3(m_datalock);
+    tTJSUniqueLock lock(m_statelock);
+    tTJSUniqueLock lock2(m_presentlock);
+    tTJSUniqueLock lock3(m_datalock);
 
     if (!m_pRenderer)
     {
@@ -856,7 +855,7 @@ bool CVideoPlayerVideo::Configure()
 
 bool CVideoPlayerVideo::IsConfigured()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
+    tTJSUniqueLock lock(m_statelock);
     if (m_renderState == STATE_CONFIGURED)
         return true;
     else
@@ -866,9 +865,9 @@ bool CVideoPlayerVideo::IsConfigured()
 void CVideoPlayerVideo::FrameWait(int ms)
 {
     TVPElapsedTimer timeout(ms);
-    std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+    tTJSUniqueLock lock(m_presentlock);
     while (m_presentstep == PRESENT_IDLE && !timeout.IsTimePast())
-        m_presentevent.wait_for(lock, std::chrono::milliseconds(timeout.MillisLeft()));
+        m_presentevent.WaitFor(m_presentlock, timeout.MillisLeft());
 }
 
 bool CVideoPlayerVideo::HasFrame()
@@ -876,7 +875,7 @@ bool CVideoPlayerVideo::HasFrame()
     if (!IsConfigured())
         return false;
 
-    std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+    tTJSUniqueLock lock(m_presentlock);
     if (m_presentstep == PRESENT_READY || m_presentstep == PRESENT_FRAME ||
         m_presentstep == PRESENT_FRAME2)
         return true;
@@ -887,7 +886,7 @@ bool CVideoPlayerVideo::HasFrame()
 void CVideoPlayerVideo::FrameMove()
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
 
         if (m_renderState == STATE_UNCONFIGURED)
             return;
@@ -901,7 +900,7 @@ void CVideoPlayerVideo::FrameMove()
         }
     }
     {
-        std::unique_lock<std::recursive_mutex> lock2(m_presentlock);
+        tTJSUniqueLock lock2(m_presentlock);
 
         if (m_queued.empty())
         {
@@ -936,10 +935,10 @@ void CVideoPlayerVideo::FrameMove()
 
 void CVideoPlayerVideo::PreInit()
 {
-    if (!IsInMainThread())
+    if (!TVPIsInMainThread())
         return;
 
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
+    tTJSUniqueLock lock(m_statelock);
 
     if (!m_pRenderer)
     {
@@ -955,10 +954,10 @@ void CVideoPlayerVideo::PreInit()
 
 void CVideoPlayerVideo::UnInit()
 {
-    if (!IsInMainThread())
+    if (!TVPIsInMainThread())
         return;
 
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
+    tTJSUniqueLock lock(m_statelock);
 
     DeleteRenderer();
 
@@ -970,11 +969,11 @@ bool CVideoPlayerVideo::Flush()
     if (!m_pRenderer)
         return true;
 
-    if (IsInMainThread())
+    if (TVPIsInMainThread())
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
-        std::unique_lock<std::recursive_mutex> lock2(m_presentlock);
-        std::unique_lock<std::recursive_mutex> lock3(m_datalock);
+        tTJSUniqueLock lock(m_statelock);
+        tTJSUniqueLock lock2(m_presentlock);
+        tTJSUniqueLock lock3(m_datalock);
 
         if (m_pRenderer)
         {
@@ -1014,14 +1013,14 @@ void CVideoPlayerVideo::DeleteRenderer()
 
 void CVideoPlayerVideo::SetViewMode(int iViewMode)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_statelock);
+    tTJSUniqueLock lock(m_statelock);
     VideoParamsChange();
 }
 
 void CVideoPlayerVideo::FlipPage(volatile std::atomic_bool& bStop, double pts, bool wait)
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
 
         if (bStop)
             return;
@@ -1031,7 +1030,7 @@ void CVideoPlayerVideo::FlipPage(volatile std::atomic_bool& bStop, double pts, b
     }
 
     EPRESENTMETHOD presentmethod;
-    std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+    tTJSUniqueLock lock(m_presentlock);
 
     if (m_free.empty())
         return;
@@ -1056,7 +1055,7 @@ void CVideoPlayerVideo::FlipPage(volatile std::atomic_bool& bStop, double pts, b
         TVPElapsedTimer endtime(200);
         while (m_presentstep == PRESENT_READY)
         {
-            m_presentevent.wait_for(lock, std::chrono::milliseconds(20));
+            m_presentevent.WaitFor(m_presentlock, 20);
             if (endtime.IsTimePast() || bStop)
             {
                 break;
@@ -1069,7 +1068,7 @@ void CVideoPlayerVideo::FlipPage(volatile std::atomic_bool& bStop, double pts, b
 void CVideoPlayerVideo::Render(bool clear, uint32_t flags, uint32_t alpha, bool gui)
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
         if (m_renderState != STATE_CONFIGURED)
             return;
     }
@@ -1096,7 +1095,7 @@ void CVideoPlayerVideo::Render(bool clear, uint32_t flags, uint32_t alpha, bool 
     m = m_Queue[m_presentsource];
 
     {
-        std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+        tTJSUniqueLock lock(m_presentlock);
 
         if (m_presentstep == PRESENT_FRAME)
         {
@@ -1121,7 +1120,7 @@ void CVideoPlayerVideo::Render(bool clear, uint32_t flags, uint32_t alpha, bool 
 bool CVideoPlayerVideo::IsGuiLayer()
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
 
         if (!m_pRenderer)
             return false;
@@ -1139,7 +1138,7 @@ bool CVideoPlayerVideo::IsGuiLayer()
 bool CVideoPlayerVideo::IsVideoLayer()
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(m_statelock);
+        tTJSUniqueLock lock(m_statelock);
 
         if (!m_pRenderer)
             return false;
@@ -1265,7 +1264,7 @@ void CVideoPlayerVideo::PrepareNextRender()
 void CVideoPlayerVideo::DiscardBuffer()
 {
     m_pRenderer->Flush();
-    std::unique_lock<std::recursive_mutex> lock2(m_presentlock);
+    tTJSUniqueLock lock2(m_presentlock);
 
     while (!m_queued.empty())
     {
@@ -1280,7 +1279,7 @@ void CVideoPlayerVideo::DiscardBuffer()
 
 bool CVideoPlayerVideo::GetStats(int& lateframes, double& pts, int& queued, int& discard)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_presentlock);
+    tTJSUniqueLock lock(m_presentlock);
     lateframes = m_lateframes / 10;
     pts = m_pClock->GetClock();
     queued = m_queued.size();

@@ -3,6 +3,7 @@
 #include "tjsNative.h"
 #include "WaveSegmentQueue.h"
 #include "WaveIntf.h"
+#include "PlatformMutex.h"
 
 //---------------------------------------------------------------------------
 // tTVPSoundStatus

@@ -1,6 +1,7 @@
 #include "tjsCommHead.h"
 
 #include "Platform.h"
+#include "PlatformFile.h"
 
 #include <SDL3/SDL_locale.h>
 #include <SDL3/SDL_log.h>

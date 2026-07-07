@@ -2,7 +2,8 @@
 
 #include "TickCount.h"
 #include "TVPSystem.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
+#include "PlatformMutex.h"
 #include "NativeEventQueue.h"
 
 #include <algorithm>

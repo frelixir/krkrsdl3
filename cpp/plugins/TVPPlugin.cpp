@@ -26,7 +26,7 @@
 #include "tjsArray.h"
 #include "tjsDictionary.h"
 #include "TVPDebug.h"
-#include "Platform.h"
+#include "PlatformFile.h"
 #include "tjs.h"
 #include "FuncStubs.h"
 

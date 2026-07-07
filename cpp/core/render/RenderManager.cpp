@@ -4,9 +4,10 @@
 #include "TVPMsg.h"
 #include "LayerBitmap.h"
 #include "TVPSystem.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "TVPApplication.h"
 #include "TVPEvent.h"
+#include "TVPStorage.h"
 #include "Platform.h"
 #include "opencv2/opencv.hpp"
 

@@ -1,6 +1,9 @@
 #pragma once
 #include "KRMovieDef.h"
-#include <mutex>
+
+#include "PlatformMutex.h"
+#include <cstdint>
+#include <cstddef>
 
 NS_KRMOVIE_BEGIN
 
@@ -36,7 +39,7 @@ protected:
     int64_t AbsoluteToSystem(double absolute);
     double SystemToPlaying(int64_t system);
 
-    std::recursive_mutex m_critSection;
+    tTJSCriticalSection m_critSection;
     int64_t m_systemUsed;
     int64_t m_startClock;
     int64_t m_pauseClock;

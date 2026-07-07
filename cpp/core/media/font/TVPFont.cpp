@@ -8,6 +8,7 @@
 #include "TVPDebug.h"
 #include "TVPMsg.h"
 #include "Platform.h"
+#include "PlatformFile.h"
 #include "StringUtil.h"
 
 tTJSHashTable<ttstr, TVPFontNamePathInfo, tTVPttstrHash> TVPFontNames;

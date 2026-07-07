@@ -1,5 +1,6 @@
 #include "tjsCommHead.h"
 #include "eventCallbackFun.h"
+#include "TVPDebug.h"
 #if _KRKRSDL3_GL
 #include <glad/glad.h>
 #else
@@ -10,11 +11,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <SDL3/SDL.h>
 
-#include <thread>
-#include <mutex>
 #include <unordered_set>
 
-extern std::thread::id TVPMainThreadID;
 extern std::vector<SDL_Sprite*> renderTexture;
 
 namespace krkrsdl3
@@ -28,20 +26,24 @@ void fetchGLInfo()
     const GLubyte* version = glGetString(GL_VERSION);
     const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    SDL_Log("OpenGL Vendor    : %s\n", vendor);
-    SDL_Log("OpenGL Renderer  : %s\n", renderer);
-    SDL_Log("OpenGL Version   : %s\n", version);
-    SDL_Log("GLSL Version     : %s\n", glslVersion);
+    ttstr log(TJS_N("OpenGL Vendor: "));
+    log += ttstr((const char*)vendor) + TJS_N(" / ") + ttstr((const char*)renderer);
+    TVPAddImportantLog(log);
+    log = TJS_N("OpenGL Version: ") + ttstr((const char*)version);
+    TVPAddImportantLog(log);
+    log = TJS_N("GLSL Version: ") + ttstr((const char*)glslVersion);
+    TVPAddImportantLog(log);
 
     GLint numExtensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-    SDL_Log("Supported Extensions (%d):\n", numExtensions);
+    log = TJS_N("OpenGL extensions (") + ttstr(numExtensions) + TJS_N("):");
     for (int i = 0; i < numExtensions; i++)
     {
         const GLubyte* ext = glGetStringi(GL_EXTENSIONS, i);
         sTVPGLExtensions.emplace(std::string((const char*)ext));
-        SDL_Log("  %s\n", ext);
+        log += " " + ttstr((const char*)ext);
     }
+    TVPAddImportantLog(log);
 }
 bool checkGLExtension(const std::string& extname)
 {

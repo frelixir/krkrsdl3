@@ -1,5 +1,5 @@
 #pragma once
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "IVideoPlayer.h"
 #include "CodecVideo.h"
 #include <deque>
@@ -184,9 +184,9 @@ protected:
     void CheckEnableClockSync();
 
     CBaseRenderer* m_pRenderer;
-    std::recursive_mutex m_statelock;
-    std::recursive_mutex m_presentlock;
-    std::recursive_mutex m_datalock;
+    tTJSCriticalSection m_statelock;
+    tTJSCriticalSection m_presentlock;
+    tTJSCriticalSection m_datalock;
     bool m_bTriggerUpdateResolution;
     bool m_bRenderGUI;
     int m_waitForBufferCount;
@@ -218,8 +218,8 @@ protected:
         STATE_CONFIGURED,
     };
     ERENDERSTATE m_renderState;
-    std::recursive_mutex m_stateMutex;
-    std::condition_variable_any m_stateEvent;
+    tTJSCriticalSection m_stateMutex;
+    tTVPCondition m_stateEvent;
 
     double m_displayLatency;
     std::atomic_int m_videoDelay;
@@ -249,7 +249,7 @@ protected:
     EPRESENTSTEP m_presentstep;
     bool m_forceNext;
     int m_presentsource;
-    std::condition_variable_any m_presentevent;
+    tTVPCondition m_presentevent;
     tTVPThreadEvent m_flushEvent;
 
     struct CClockSync

@@ -7,6 +7,7 @@
 #include "TVPStorage.h"
 #include "TVPDebug.h"
 #include "TVPMsg.h"
+#include "Platform.h"
 
 namespace krkrsdl3
 {
@@ -117,6 +118,9 @@ namespace krkrsdl3
         TVPInitProgramArgumentsAndDataPath(argc, argv);
 
         TVPDumpOptions();
+
+        // check CPU type
+        TVPDetectCPU();
 
         // GameSettings
         settings.ogl_accurate_render = false;

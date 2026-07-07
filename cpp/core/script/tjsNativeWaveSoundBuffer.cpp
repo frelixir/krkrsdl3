@@ -8,14 +8,15 @@
 #include "WaveLoopManager.h"
 #include "tjsArray.h"
 #include "tjsDictionary.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "TVPSystem.h"
+#include "TVPStorage.h"
 #include "NativeEventQueue.h"
 #include "Random.h"
 #include "TickCount.h"
 #include "Platform.h"
-
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
+#include "PlatformFile.h"
 
 #define TVP_SB_BEAT_INTERVAL 60
 

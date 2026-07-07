@@ -1,4 +1,3 @@
-#include <thread>
 #include "tjsCommHead.h"
 extern "C"
 {
@@ -6,7 +5,6 @@ extern "C"
 }
 #include "krffmpeg.h"
 #include "krmovie.h"
-#include <mutex>
 #include "TVPMsg.h"
 #include "TVPStorage.h"
 #include "KRMovieOverlay.h"
@@ -186,18 +184,18 @@ int TVPMoviePlayer::WaitForBuffer(volatile std::atomic_bool& bStop, int timeout)
     int remainBuf = MAX_BUFFER_COUNT - m_usedPicture;
     if (remainBuf > 0)
         return remainBuf;
-    std::unique_lock<std::mutex> lk(m_mtxPicture);
+    tTJSUniqueLock lk(m_mtxPicture);
     while (!bStop && MAX_BUFFER_COUNT <= m_usedPicture && timeout > 0)
     {
         timeout -= 10;
-        m_condPicture.wait_for(lk, std::chrono::milliseconds(10));
+        m_condPicture.WaitFor(m_mtxPicture, 10);
     }
     return MAX_BUFFER_COUNT - m_usedPicture - 1;
 }
 
 void TVPMoviePlayer::Flush()
 {
-    std::unique_lock<std::mutex> lk(m_mtxPicture);
+    tTJSUniqueLock lk(m_mtxPicture);
     for (int i = 0; i < MAX_BUFFER_COUNT; ++i)
     {
         m_picture[i].Clear();
@@ -223,8 +221,8 @@ int TVPMoviePlayer::AddVideoPicture(KRMovie::DVDVideoPicture& pic, int index)
 
     if (m_usedPicture >= MAX_BUFFER_COUNT)
     {
-        std::unique_lock<std::mutex> lk(m_mtxPicture);
-        m_condPicture.wait(lk);
+        tTJSUniqueLock lk(m_mtxPicture);
+        m_condPicture.Wait(m_mtxPicture);
     }
     if (m_usedPicture >= MAX_BUFFER_COUNT)
         return -1;
@@ -241,7 +239,7 @@ int TVPMoviePlayer::AddVideoPicture(KRMovie::DVDVideoPicture& pic, int index)
         sws_scale(img_convert_ctx, pic.data, pic.iLineSize, 0, pic.iHeight, &data, &datasize);
 
     {
-        std::lock_guard<std::mutex> lk(m_mtxPicture);
+        tTJSCriticalSectionHolder lk(m_mtxPicture);
         BitmapPicture& picbuf = m_picture[(m_curPicture + m_usedPicture) & (MAX_BUFFER_COUNT - 1)];
         picbuf.Clear();
         picbuf.width = width;

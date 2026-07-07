@@ -13,7 +13,8 @@
 
 #include "tjsUtils.h"
 #include "TVPSystem.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
+#include "PlatformMutex.h"
 
 //---------------------------------------------------------------------------
 // 64bit may enough to hold usual time count.

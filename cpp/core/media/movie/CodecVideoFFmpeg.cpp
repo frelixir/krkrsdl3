@@ -6,7 +6,8 @@ extern "C"
 #include "libavutil/pixdesc.h"
 }
 #include "VideoReferenceClock.h"
-#include "TVPThread.h"
+#include "Platform.h"
+#include "PlatformThread.h"
 #include "Message.h"
 
 NS_KRMOVIE_BEGIN

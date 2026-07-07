@@ -14,7 +14,7 @@
 #include "tjsUtils.h"
 #include "TVPDebug.h"
 #include "TVPMsg.h"
-#include "TVPThread.h"
+#include "PlatformThread.h"
 #include "RenderManager.h"
 #include "TVPSystem.h"
 #include "TVPStorage.h"

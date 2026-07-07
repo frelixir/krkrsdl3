@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include <thread>
 
 #include "tjsError.h"
 #include "tjsDebug.h"
@@ -28,7 +27,6 @@
 #include "TVPTimer.h"
 
 tTVPApplication* Application = new tTVPApplication;
-std::thread::id TVPMainThreadID;
 static tTJSCriticalSection _NoMemCallBackCS;
 static void* _reservedMem = malloc(1024 * 1024 * 4); // 4M reserved mem
 static bool _project_startup = false;
@@ -46,11 +44,6 @@ ttstr TVPGetErrorDialogTitle()
     {
         return ttstr(TVPGetPackageVersionString()) + " " + title;
     }
-}
-
-bool IsInMainThread()
-{
-    return std::this_thread::get_id() == TVPMainThreadID;
 }
 
 ttstr ExePath()
@@ -226,7 +219,7 @@ void tTVPApplication::ProcessMessages()
 {
     std::vector<std::tuple<void*, int, tMsg>> lstUserMsg;
     {
-        std::lock_guard<std::mutex> cs(m_msgQueueLock);
+        tTJSCSH cs(m_msgQueueLock);
         m_lstUserMsg.swap(lstUserMsg);
     }
     for (std::tuple<void*, int, tMsg>& it : lstUserMsg)
@@ -253,14 +246,14 @@ void tTVPApplication::CheckDigitizer()
 
 void tTVPApplication::PostUserMessage(const std::function<void()>& func, void* host, int msg)
 {
-    std::lock_guard<std::mutex> cs(m_msgQueueLock);
+    tTJSCSH cs(m_msgQueueLock);
     m_lstUserMsg.emplace_back(host, msg, func);
 }
 
 void tTVPApplication::FilterUserMessage(
     const std::function<void(std::vector<std::tuple<void*, int, tMsg>>&)>& func)
 {
-    std::lock_guard<std::mutex> cs(m_msgQueueLock);
+    tTJSCSH cs(m_msgQueueLock);
     func(m_lstUserMsg);
 }
 

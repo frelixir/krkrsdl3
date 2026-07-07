@@ -14,6 +14,7 @@
 #include "tjsError.h"
 #include "tjsUtils.h"
 #include "tjsLex.h"
+#include "PlatformMutex.h"
 #include <algorithm>
 
 namespace TJS

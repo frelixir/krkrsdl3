@@ -271,7 +271,7 @@ void tTVPLogStreamHolder::Open(const tjs_char* mode)
         else
         {
             // no log location specified
-            filename = TVPNativeLogLocation + TJS_N("/krkr.console.log");
+            filename = TVPNativeLogLocation + TJS_N("krkr.console.log");
             TVPEnsureDataPathDirectory();
             std::string _filename = filename.AsStdString();
             Stream = SDL_IOFromFile(_filename.c_str(), mode);
@@ -576,7 +576,8 @@ void TVPSetLogLocation(const ttstr& loc)
     else
     {
         TVPNativeLogLocation = native;
-        if (TVPNativeLogLocation[TVPNativeLogLocation.length() - 1] != TJS_N('/'))
+        if (TVPNativeLogLocation[TVPNativeLogLocation.length() - 1] != TJS_N('/') &&
+            TVPNativeLogLocation[TVPNativeLogLocation.length() - 1] != TJS_N('\\'))
             TVPNativeLogLocation += TJS_N("/");
     }
 

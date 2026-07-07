@@ -4,7 +4,7 @@
 #include "TVPWindow.h"
 #include "WindowIntf.h"
 #include "ncbind/ncbind.hpp"
-#include "Platform.h"
+#include "PlatformFile.h"
 
 #include "tjsNativeLayer.h"
 

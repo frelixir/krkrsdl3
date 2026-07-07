@@ -3,6 +3,7 @@
 #include "TVPStorage.h"
 #include "TVPPlugin.h"
 #include "Platform.h"
+#include "PlatformFile.h"
 #include "md5.h"
 
 #define NCB_MODULE_NAME TJS_N("fstat.dll")

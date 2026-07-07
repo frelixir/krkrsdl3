@@ -29,10 +29,6 @@
 #include "tjsNativeBitmap.h"
 #include "tjsNativeLayer.h"
 
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
 static void TVPLoadGraphicRouter(void* formatdata,
                                  void* callbackdata,
                                  tTVPGraphicSizeCallback sizecallback,

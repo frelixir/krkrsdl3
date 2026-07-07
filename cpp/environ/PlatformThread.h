@@ -1,16 +1,4 @@
-//---------------------------------------------------------------------------
-/*
-        TVP2 ( T Visual Presenter 2 )  A script authoring tool
-        Copyright (C) 2000 W.Dee <dee@kikyou.info> and contributors
-
-        See details of license at "license.txt"
-*/
-//---------------------------------------------------------------------------
-// Thread base class
-//---------------------------------------------------------------------------
-#ifndef TVPThreadH
-#define TVPThreadH
-#include "tjsNative.h"
+#pragma once
 
 #include <condition_variable>
 #include <functional>
@@ -38,9 +26,7 @@ class tTVPThread
 {
     bool Terminated;
     bool Suspended;
-    SDL_Thread* Handle;
-    std::mutex _mutex;
-    std::condition_variable _cond;
+    void* _impl;
 
     static int StartProc(void* arg);
 
@@ -61,10 +47,8 @@ protected:
 
 public:
     void WaitFor();
-
     tTVPThreadPriority GetPriority();
     void SetPriority(tTVPThreadPriority pri);
-
     void Resume();
 };
 //---------------------------------------------------------------------------
@@ -74,21 +58,21 @@ public:
 //---------------------------------------------------------------------------
 class tTVPThreadEvent
 {
-    std::condition_variable Handle;
-    std::mutex Mutex;
+    void* _impl;
 
 public:
+    tTVPThreadEvent();
+    ~tTVPThreadEvent();
     void Set();
-    bool WaitFor(tjs_uint timeout);
+    bool WaitFor(int timeout);
 };
 
 /*[*/
-const tjs_int TVPMaxThreadNum = 8;
+const int TVPMaxThreadNum = 8;
 typedef const std::function<void(int)>& TVP_THREAD_TASK_FUNC;
 /*]*/
 
-tjs_int TVPGetProcessorNum();
-tjs_int TVPGetThreadNum();
+int TVPGetThreadNum();
 void TVPExecThreadTask(int numThreads, TVP_THREAD_TASK_FUNC func);
 
 //---------------------------------------------------------------------------
@@ -96,4 +80,7 @@ void TVPAddOnThreadExitEvent(const std::function<void()>& ev);
 void TVPOnThreadExited();
 //---------------------------------------------------------------------------
 
-#endif
+bool TVPIsInMainThread();
+uint64_t TVPGetCurrentThreadID();
+void TVPSleepFor(uint32_t ms);
+//---------------------------------------------------------------------------

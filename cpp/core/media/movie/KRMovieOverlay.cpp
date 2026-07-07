@@ -1,4 +1,3 @@
-#include <thread>
 extern "C"
 {
 #include "libswscale/swscale.h"
@@ -9,7 +8,7 @@ extern "C"
 #include "KRMovieOverlay.h"
 #include "NativeEventQueue.h"
 #include "CodecVideo.h"
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
 
 #include "tjsNativeVideoOverlay.h"
 
@@ -59,7 +58,7 @@ void VideoPresentOverlay::OnContinuousCallback(tjs_uint64 tick)
         return;
     double m_curpts = m_pPlayer->GetClock() / DVD_TIME_BASE;
     {
-        std::lock_guard<std::mutex> lk(m_mtxPicture);
+        tTJSCriticalSectionHolder lk(m_mtxPicture);
         BitmapPicture& picbuf = m_picture[m_curPicture];
         // check pts
         if (picbuf.pts > m_curpts)

@@ -1,5 +1,6 @@
 #include "tjsCommHead.h"
-#include "WaveMixer.h"
+#include "PlatformAudio.h"
+#include "PlatformMutex.h"
 #include "TVPSystem.h"
 #include "TickCount.h"
 #include "TVPDebug.h"
@@ -22,7 +23,7 @@ public:
     int totalBufferSize = 0;
     tjs_uint* _bufferSizeCache;
     int _bufferIdx = -1;
-    std::mutex _buffer_mtx;
+    tTJSCriticalSection _buffer_mtx;
 
     int queued = 0, processed = 0;
 
@@ -182,7 +183,7 @@ public:
         if (inlen <= 0)
             return;
 
-        std::lock_guard<std::mutex> lk(_buffer_mtx);
+        tTJSCSH lk(_buffer_mtx);
         UpdateQueueData();
         if (queued >= _bufferLimitCount)
             return;
@@ -197,7 +198,7 @@ public:
     }
     virtual bool IsBufferValid() override
     {
-        std::lock_guard<std::mutex> lk(_buffer_mtx);
+        tTJSCSH lk(_buffer_mtx);
         UpdateQueueData();
         if (processed > 0)
             return true;
@@ -218,7 +219,7 @@ public:
     }
     virtual int GetRemainBuffers() override
     {
-        std::lock_guard<std::mutex> lk(_buffer_mtx);
+        tTJSCSH lk(_buffer_mtx);
         UpdateQueueData();
         return queued;
     }

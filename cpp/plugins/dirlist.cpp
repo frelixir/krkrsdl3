@@ -2,7 +2,7 @@
 #include "ncbind/ncbind.hpp"
 #include "TVPMsg.h"
 #include "TVPStorage.h"
-#include "Platform.h"
+#include "PlatformFile.h"
 
 //---------------------------------------------------------------------------
 

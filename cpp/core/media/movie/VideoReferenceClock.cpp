@@ -7,7 +7,7 @@ NS_KRMOVIE_BEGIN
 
 CDVDClock::CDVDClock()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
 
     m_pauseClock = 0;
     m_bReset = true;
@@ -26,13 +26,13 @@ CDVDClock::~CDVDClock()
 
 double CDVDClock::GetClock()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
     return SystemToPlaying(TVPGetRoughTickCount32());
 }
 
 double CDVDClock::GetClock(double& absolute)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
     int64_t current = TVPGetRoughTickCount32();
     absolute = SystemToAbsolute(current);
     return SystemToPlaying(current);
@@ -40,13 +40,13 @@ double CDVDClock::GetClock(double& absolute)
 
 double CDVDClock::GetAbsoluteClock()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
     return SystemToAbsolute(TVPGetRoughTickCount32());
 }
 
 void CDVDClock::SetSpeed(int iSpeed)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
 
     if (m_paused)
     {
@@ -76,13 +76,13 @@ void CDVDClock::SetSpeed(int iSpeed)
 
 double CDVDClock::GetClockSpeed()
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
     return (double)1000 / m_systemUsed;
 }
 
 void CDVDClock::Discontinuity(double clock, double absolute)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
     m_startClock = AbsoluteToSystem(absolute);
     if (m_pauseClock)
         m_pauseClock = m_startClock;
@@ -102,7 +102,7 @@ int CDVDClock::UpdateFramerate(double fps, double* interval)
 
 void CDVDClock::Pause(bool pause)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_critSection);
+    tTJSCSH lock(m_critSection);
 
     if (pause && !m_paused)
     {

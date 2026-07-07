@@ -2,7 +2,6 @@
 #include "KRMovieDef.h"
 #include "CodecDemux.h"
 #include <string>
-#include <mutex>
 
 extern "C"
 {

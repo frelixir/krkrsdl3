@@ -13,6 +13,7 @@
 
 #include "TVPMsg.h"
 #include "Platform.h"
+#include "PlatformFile.h"
 
 //---------------------------------------------------------------------------
 // tTVPLocalTempStorageHolder
