@@ -5,22 +5,6 @@
 #include <stdint.h>
 #include <string>
 
-#ifndef GL_ZERO
-#define GL_ZERO 0
-#define GL_ONE 1
-#endif
-#ifndef GL_SRC_ALPHA
-#define GL_SRC_ALPHA 0x0302
-#define GL_ONE_MINUS_SRC_ALPHA 0x0303
-#define GL_ONE_MINUS_DST_ALPHA 0x0305
-#define GL_FUNC_ADD 0x8006
-#endif
-#ifndef GL_MAX
-#define GL_MIN 0x8007
-#define GL_MAX 0x8008
-#define GL_FUNC_REVERSE_SUBTRACT 0x800B
-#endif
-
 struct TVPTextureFormat
 {
     enum e

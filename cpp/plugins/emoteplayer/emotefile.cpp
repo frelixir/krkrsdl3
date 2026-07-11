@@ -1532,6 +1532,23 @@ void emoteicon::ensureLoad()
 #endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
+        else
+        {
+            // 色彩转化
+            if (_filePtr->colorType == 0)
+            {
+                for (size_t i = 0; i < width * height; i++)
+                {
+                    uint8_t tmp = data[4 * i];
+                    data[4 * i] = data[4 * i + 2];
+                    data[4 * i + 2] = tmp;
+                }
+            }
+            else if (_filePtr->colorType != 1)
+            {
+                TVPConsoleLog("unknow colorType");
+            }
+        }
     }
 }
 

@@ -445,6 +445,124 @@ static void buildSubdivMesh(
         }
     }
 }
+// Build simple rectangle mesh (two triangles)
+static void buildRectMesh(const std::vector<emoteRender>& renderMethod,
+                          std::vector<emotenoderef::MeshVertex>& outVerts,
+                          std::vector<uint16_t>& outIndices)
+{
+    outVerts.clear();
+    outIndices.clear();
+    float cornerUV[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
+
+    outVerts.reserve(4);
+    for (int i = 0; i < 4; i++)
+    {
+        float clipX, clipY;
+        evaluateSurfaceChain(renderMethod, cornerUV[i][0], cornerUV[i][1], clipX, clipY);
+        outVerts.push_back({clipX, clipY, cornerUV[i][1], cornerUV[i][0]});
+    }
+
+    outIndices.reserve(6);
+    outIndices.push_back(0);
+    outIndices.push_back(1);
+    outIndices.push_back(2);
+    outIndices.push_back(1);
+    outIndices.push_back(3);
+    outIndices.push_back(2);
+}
+
+#pragma endregion
+
+#pragma region softwareblend
+
+struct ColorRGBA
+{
+    uint8_t r, g, b, a;
+};
+
+static inline uint8_t clampf(float v)
+{
+    if (v < 0)
+        return 0;
+    if (v > 255)
+        return 255;
+    return (uint8_t)v;
+}
+
+static ColorRGBA blendPixels(
+    ColorRGBA src, ColorRGBA dst, int mode, float opa, ColorRGBA uniformColor = {0, 0, 0, 0})
+{
+    float sa = src.a / 255.0f * opa;
+    float da = dst.a / 255.0f;
+
+    if (sa <= 0.001f)
+        return dst;
+    if (sa >= 0.999f && mode == 0)
+        return src;
+
+    if (mode == 21)
+    {
+        src = uniformColor;
+        src.a = (uint8_t)(uniformColor.a * opa);
+        sa = src.a / 255.0f;
+    }
+    float sr = src.r / 255.0f, sg = src.g / 255.0f, sb = src.b / 255.0f;
+    float dr = dst.r / 255.0f, dg = dst.g / 255.0f, db = dst.b / 255.0f;
+    float outR = 0, outG = 0, outB = 0, outA = 0;
+
+    switch (mode)
+    {
+        case 0:
+            outA = sa + da * (1.0f - sa);
+            if (outA > 0.001f)
+            {
+                outR = (sr * sa + dr * da * (1.0f - sa)) / outA;
+                outG = (sg * sa + dg * da * (1.0f - sa)) / outA;
+                outB = (sb * sa + db * da * (1.0f - sa)) / outA;
+            }
+            else
+            {
+                outR = sr;
+                outG = sg;
+                outB = sb;
+            }
+            outA = sa + da;
+            break;
+        case 1:
+        case 4:
+            outR = sr * dr + dr;
+            outG = sg * dg + dg;
+            outB = sb * db + db;
+            outA = da * 1.0f;
+            break;
+        case 3:
+            outR = sr * sa + dr * (1 - sa);
+            outG = sg * sa + dg * (1 - sg);
+            outB = sb * sa + db * (1 - sb);
+            outA = std::max(sa, da);
+            break;
+        case 6:
+            break;
+        default:
+            outA = sa + da * (1.0f - sa);
+            if (outA > 0.001f)
+            {
+                outR = (sr * sa + dr * da * (1.0f - sa)) / outA;
+                outG = (sg * sa + dg * da * (1.0f - sa)) / outA;
+                outB = (sb * sa + db * da * (1.0f - sa)) / outA;
+            }
+            else
+            {
+                outR = sr;
+                outG = sg;
+                outB = sb;
+            }
+            outA = sa + da;
+            break;
+    }
+
+    return {clampf(outR * 255), clampf(outG * 255), clampf(outB * 255), clampf(outA * 255)};
+}
 
 #pragma endregion
 
@@ -885,9 +1003,29 @@ void emotenoderef::progress(float tick, std::vector<emoteRender>& renderList, em
         // 确定细分等级
         int div = currentNode ? (int)currentNode->meshDivision : 0;
         if (div < 2) div = 8; // 默认8x8，匹配原曲面细分着色器的细分等级
-        _meshDivX = div;
-        _meshDivY = div;
-        buildSubdivMesh(renderMethod, _meshDivX, _meshDivY, _meshVertices, _meshIndices);
+        // 检查是否包含mesh变形
+        bool containsMesh = false;
+        for (auto itm : renderMethod)
+        {
+            if (itm.type == 1)
+            {
+                containsMesh = true;
+                break;
+            }
+        }
+        // 变换
+        if (containsMesh)
+        {
+            // 细分并变形
+            _meshDivX = div;
+            _meshDivY = div;
+            buildSubdivMesh(renderMethod, _meshDivX, _meshDivY, _meshVertices, _meshIndices);
+        }
+        else
+        {
+            // 进行简单三角剖分
+            buildRectMesh(renderMethod, _meshVertices, _meshIndices);
+        }
     }
     else
     {
@@ -925,8 +1063,147 @@ void emotenoderef::progress(float tick, std::vector<emoteRender>& renderList, em
 void emotenoderef::drawSoftware(uint8_t* buf, emotelimit lim, uint8_t* bufmask)
 {
     // 软渲染未实现
-}
+    if (!isNeedDraw || !isIcon || renderMethod.size() < 1 || currentNode->removed)
+        return; // 跳过无需绘制的 和 非icon的 和 无method 的节点
 
+    // 跳过空网格
+    if (_meshVertices.empty() || _meshIndices.empty())
+        return;
+
+    //  提前绘制好蒙版texture
+    if (renderMethod.at(0).hasStencil && bufmask != 0) // 进行Stencil过滤 不考虑复合蒙版的情况了
+    {
+        std::memset(bufmask, 0, (size_t)lim.width * lim.height * 4);
+        bool hasDraw = false;
+        for (auto maskLayer : renderMethod.at(0).layerNode)
+        {
+            if (maskLayer != nullptr && maskLayer->currOpa > 0)
+            {
+                hasDraw = true;
+                maskLayer->drawSoftware(bufmask, lim, bufmask);
+            }
+        }
+        // 排除异常蒙版
+        if (!hasDraw)
+            renderMethod.at(0).hasStencil = false;
+    }
+
+    // 透明度与混色
+    float totalOpa = currOpa;
+    for (size_t i = 0; i < renderMethod.size(); i++)
+        totalOpa *= renderMethod.at(i).opa;
+    int blendMode = currbm;
+    ColorRGBA uniformColor = {0, 0, 0, 0};
+    if (blendMode == 21 && frame)
+    {
+        uniformColor = {(uint8_t)(frame->color & 0xFF), (uint8_t)((frame->color >> 8) & 0xFF),
+                        (uint8_t)((frame->color >> 16) & 0xFF),
+                        (uint8_t)((frame->color >> 24) & 0xFF)};
+    }
+
+    // 绘制所有三角形(使用 edge function + 仿射纹理步进优化)
+    // TODO:优化太难了，还是用opengl渲染吧
+    int pitch = (int)lim.width;
+    uint32_t* dst = (uint32_t*)buf;
+    uint32_t* maskRowBase = bufmask ? (uint32_t*)bufmask : nullptr;
+    ColorRGBA* texData = (ColorRGBA*)ic->data;
+    int texW = ic->width, texH = ic->height;
+    bool hasStencil = renderMethod.at(0).hasStencil;
+    for (size_t idx = 0; idx < _meshIndices.size(); idx += 3)
+    {
+        uint16_t i0 = _meshIndices[idx];
+        uint16_t i1 = _meshIndices[idx + 1];
+        uint16_t i2 = _meshIndices[idx + 2];
+        const MeshVertex& v0 = _meshVertices[i0];
+        const MeshVertex& v1 = _meshVertices[i1];
+        const MeshVertex& v2 = _meshVertices[i2];
+        float x0 = (v0.x + 1.0f) * 0.5f * lim.width;
+        float y0 = (v0.y + 1.0f) * 0.5f * lim.height;
+        float x1 = (v1.x + 1.0f) * 0.5f * lim.width;
+        float y1 = (v1.y + 1.0f) * 0.5f * lim.height;
+        float x2 = (v2.x + 1.0f) * 0.5f * lim.width;
+        float y2 = (v2.y + 1.0f) * 0.5f * lim.height;
+
+        int minX = (int)std::max(0.0f, std::min(x0, std::min(x1, x2)));
+        int maxX = (int)std::min((float)lim.width - 1, std::max(x0, std::max(x1, x2)));
+        int minY = (int)std::max(0.0f, std::min(y0, std::min(y1, y2)));
+        int maxY = (int)std::min((float)lim.height - 1, std::max(y0, std::max(y1, y2)));
+        if (minX > maxX || minY > maxY)
+            continue;
+
+        // Edge function: f_ij(x,y) = a*x + b*y + c
+        // f01: v0→v1, f12: v1→v2, f20: v2→v0
+        // 三角形内部 f01,f12,f20 同号
+        float a01 = y0 - y1, b01 = x1 - x0, c01 = x0 * y1 - x1 * y0;
+        float a12 = y1 - y2, b12 = x2 - x1, c12 = x1 * y2 - x2 * y1;
+        float a20 = y2 - y0, b20 = x0 - x2, c20 = x2 * y0 - x0 * y2;
+
+        float area = a12 * x0 + b12 * y0 + c12; // = 2*有符号面积
+        if (std::abs(area) < 1e-6f) continue;
+        float invArea = 1.0f / area;
+        bool ccw = area > 0;
+
+        // ===== 仿射纹理步进参数 =====
+        // 纹理坐标 tu/tv 是 edge function 的线性组合:
+        //   tu = (v0.u*f12 + v1.u*f20 + v2.u*f01) / area
+        //   => tu(x,y) = (A_u*x + B_u*y + C_u) / area
+        float A_u = v0.u * a12 + v1.u * a20 + v2.u * a01;
+        float B_u = v0.u * b12 + v1.u * b20 + v2.u * b01;
+        float A_v = v0.v * a12 + v1.v * a20 + v2.v * a01;
+        float B_v = v0.v * b12 + v1.v * b20 + v2.v * b01;
+
+        float tu0 = (A_u * minX + B_u * minY + (v0.u * c12 + v1.u * c20 + v2.u * c01)) * invArea;
+        float tv0 = (A_v * minX + B_v * minY + (v0.v * c12 + v1.v * c20 + v2.v * c01)) * invArea;
+        float du_dx = A_u * invArea, dv_dx = A_v * invArea; // 每像素纹理增量
+        float du_dy = B_u * invArea, dv_dy = B_v * invArea; // 每扫描线纹理增量
+
+        // 在(minX,minY)处初始化edge function
+        float f01 = a01 * minX + b01 * minY + c01;
+        float f12 = a12 * minX + b12 * minY + c12;
+        float f20 = a20 * minX + b20 * minY + c20;
+        float df01_dx = a01, df12_dx = a12, df20_dx = a20;
+        float df01_dy = b01, df12_dy = b12, df20_dy = b20;
+
+        int texW_1 = texW - 1, texH_1 = texH - 1;
+        int iw = (int)lim.width;
+
+        for (int py = minY; py <= maxY; py++)
+        {
+            float f01_row = f01, f12_row = f12, f20_row = f20;
+            float tu_row = tu0, tv_row = tv0;
+
+            ColorRGBA* row = (ColorRGBA*)(dst + (size_t)py * pitch);
+            uint32_t* maskRow = maskRowBase ? maskRowBase + (size_t)py * iw : nullptr;
+
+            for (int px = minX; px <= maxX; px++)
+            {
+                bool inside = ccw ? (f01_row >= 0 && f12_row >= 0 && f20_row >= 0)
+                                  : (f01_row <= 0 && f12_row <= 0 && f20_row <= 0);
+                if (inside)
+                {
+                    int tx = (int)(tu_row * texW_1 + 0.5f);
+                    int ty = (int)(tv_row * texH_1 + 0.5f);
+                    if (tx < 0) tx = 0; else if (tx > texW_1) tx = texW_1;
+                    if (ty < 0) ty = 0; else if (ty > texH_1) ty = texH_1;
+
+                    if (!hasStencil || !maskRow || ((maskRow[px] >> 24) & 0xFF) >= 128)
+                    {
+                        row[px] = blendPixels(
+                            texData[(size_t)ty * texW + tx], row[px],
+                            blendMode, totalOpa, uniformColor);
+                    }
+                }
+
+                // 增量更新: edge function + 纹理坐标
+                f01_row += df01_dx; f12_row += df12_dx; f20_row += df20_dx;
+                tu_row += du_dx; tv_row += dv_dx;
+            }
+
+            f01 += df01_dy; f12 += df12_dy; f20 += df20_dy;
+            tu0 += du_dy; tv0 += dv_dy;
+        }
+    }
+}
 void emotenoderef::draw(GLuint targetFbo, emotelimit lim, GLuint exFbo, GLuint exTex)
 {
     if (!isNeedDraw || !isIcon || renderMethod.size() < 1 || currentNode->removed)
@@ -1254,7 +1531,6 @@ void emotemotionref::drawSoftware(uint8_t* buf, emotelimit lim, uint8_t* bufmask
         }
     }
 }
-
 void emotemotionref::draw(GLuint targetFbo, emotelimit lim, GLuint exFbo, GLuint exTex)
 {
     if (_nodeCache.empty()) return;
@@ -1345,7 +1621,6 @@ void emoteengine::drawSoftware(uint8_t* buf, emotelimit lim, uint8_t* bufmask)
     if (_mainMotionRef)
         _mainMotionRef->drawSoftware(buf, lim, bufmask);
 }
-
 void emoteengine::draw(GLuint targetFbo, emotelimit lim, GLuint exFbo, GLuint exTex)
 {
     if (_mainMotionRef)

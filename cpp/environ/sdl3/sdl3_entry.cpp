@@ -98,6 +98,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     {
         // SDL模拟软渲染器，虽然可能选择GPU，但对于App来说是软渲染
         tvp_renderer = SDL_CreateRenderer(tvp_window, NULL);
+        SDL_SetRenderVSync(tvp_renderer, 1);
         SDL_Log("SWRender Backend: %s", SDL_GetRendererName(tvp_renderer));
     }
 

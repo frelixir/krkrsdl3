@@ -62,7 +62,8 @@ set(KRKRSDL_CORE_SRC
     ${KRKRSDL_CORE_PATH}/render/LayerManager.cpp
     ${KRKRSDL_CORE_PATH}/render/LayerTreeOwner.cpp
     ${KRKRSDL_CORE_PATH}/render/MainWindowLayer.cpp
-    ${KRKRSDL_CORE_PATH}/render/RenderManager.cpp
+    ${KRKRSDL_CORE_PATH}/render/RenderManager_gl.cpp
+    ${KRKRSDL_CORE_PATH}/render/RenderManager_sw.cpp
     ${KRKRSDL_CORE_PATH}/render/TransIntf.cpp
 	${KRKRSDL_CORE_PATH}/render/TVPColor.cpp
     ${KRKRSDL_CORE_PATH}/render/TVPCompositor.cpp

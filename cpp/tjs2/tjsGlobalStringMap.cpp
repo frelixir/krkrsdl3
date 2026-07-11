@@ -13,6 +13,8 @@
 #include "tjsGlobalStringMap.h"
 #include "tjsHashSearch.h"
 
+#include "PlatformMutex.h"
+
 /*
         Global String Map is a large string hash table, to share the string
         which is already 'known' by the hash table, using TJS2 string heap
@@ -123,6 +125,8 @@ void TJSReleaseGlobalStringMap()
 //---------------------------------------------------------------------------
 ttstr TJSMapGlobalStringMap(const ttstr& string)
 {
+    static tTJSCriticalSection _mutex;
+    tTJSCriticalSectionHolder lk(_mutex);
     return tTJSGlobalStringMap::Map(string);
 }
 //---------------------------------------------------------------------------
